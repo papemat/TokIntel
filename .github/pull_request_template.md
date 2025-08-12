@@ -1,15 +1,24 @@
-## 📋 Descrizione
-<!-- Cosa fa questa PR e perché? -->
+## Sprint 3 — Hardening & E2E
 
-## ✅ Checklist
-- [ ] Test locali passati (`make test`)
-- [ ] Coverage totale ≥ 40% (CI o locale)
-- [ ] Coverage patch ≥ 70% (vedi Codecov)
-- [ ] Nessun file escluso rilevante in `.coveragerc`
-- [ ] Se rilevante: link a report HTML (artifact CI)
+### Checklist
+- [ ] Orchestrator CLI funzionante
+- [ ] E2E headless green su 3.10/3.11
+- [ ] Auto-export CSV/JSON verificato
+- [ ] Badge workflow verde
 
-## 🔗 Link utili
-- Codecov: https://codecov.io/gh/papemat/TokIntel
-- Artifact HTML (CI): `coverage-html` → `index.html`
-- Coverage HTML (GitHub Pages – Preview PR): https://papemat.github.io/TokIntel/pr-<PR_NUMBER>/index.html
-<!-- Sostituisci <PR_NUMBER> con il numero della PR, o usa il link nel commento automatico della CI -->
+### Note
+- Comandi di verifica:
+  ```bash
+  make kill-port TI_PORT=8510
+  TI_AUTO_EXPORT=1 TI_PORT=8510 make run-ui
+  make test-e2e-only && make coverage-sprint3
+  ```
+
+### Changes
+<!-- Descrivi le modifiche principali -->
+
+### Testing
+<!-- Come hai testato le modifiche -->
+
+### Screenshots
+<!-- Se applicabile -->

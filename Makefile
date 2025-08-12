@@ -360,6 +360,10 @@ lint-sprint3: ## Linting specifico per Sprint 3
 	$(PY) -m ruff check . --fix || true
 	$(PY) -m ruff check .
 
+ci-debug: ## Debug CI locale (E2E con debug)
+	@echo "🧪 CI Debug mode (E2E_DEBUG=1)..."
+	E2E_DEBUG=1 TI_PORT=$(TI_PORT) TI_AUTO_EXPORT=1 $(PY) -m pytest -q -m e2e tests/e2e/test_streamlit_ui.py -vv
+
 lint: ## Linting con ruff
 	pip install ruff || true
 	ruff check . || true

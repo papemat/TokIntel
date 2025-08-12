@@ -2,10 +2,19 @@ name: Unit & Lint (soft)
 on:
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: "Enable verbose lint/unit debug (LINT_DEBUG=1)"
+        type: boolean
+        required: false
+        default: false
 jobs:
   unit-and-lint:
     runs-on: ubuntu-latest
     continue-on-error: true  # soft-fail, non-blocking
+    env:
+      LINT_DEBUG: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.debug == 'true') && '1' || '0' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -17,6 +26,15 @@ jobs:
           pip install -r requirements.txt
           pip install ruff
       - name: Lint
-        run: ruff check .
+        run: |
+          if [ "${LINT_DEBUG}" = "1" ]; then
+            echo "LINT_DEBUG is ON (verbose)"; ruff --version
+          fi
+          ruff check .
       - name: Unit tests (soft)
-        run: pytest -q
+        run: |
+          if [ "${LINT_DEBUG}" = "1" ]; then
+            pytest -q -vv
+          else
+            pytest -q
+          fi

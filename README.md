@@ -60,6 +60,10 @@ chmod +x scripts/kill_port.sh scripts/dev_smoke.sh
 ./scripts/dev_smoke.ps1
 ```
 
+### Esecuzione manuale workflow (debug)
+- **Sprint 3 E2E**: Actions → *Sprint 3 E2E* → **Run workflow** → `debug=true` (stampa tail log E2E).
+- **Unit & Lint (soft)**: Actions → *Unit & Lint (soft)* → **Run workflow** → `debug=true` (lint/unit verbose).
+
 ## 🏃‍♂️ Run Locally
 
 ```bash
