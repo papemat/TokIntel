@@ -1,0 +1,3 @@
+# Optional dependencies - install only when needed
+# FAISS for vector search (CPU only, no GPU dependency)
+faiss-cpu>=1.8.0; platform_system!="Windows"

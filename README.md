@@ -29,6 +29,22 @@ make index-cpu
 make search q="CTA che converte"
 ```
 
+## 🏃‍♂️ Run Locally
+
+```bash
+# Setup ambiente virtuale
+python -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# Installa dipendenze
+pip install -r requirements.txt
+
+# Opzionale: dipendenze aggiuntive (FAISS, etc.)
+pip install -r requirements-optional.txt
+
+# Avvia l'applicazione
+python launch_tokintel_gui.py
+```
+
 ## 📁 Struttura del Progetto
 
 ```
