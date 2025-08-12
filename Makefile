@@ -247,6 +247,10 @@ perf-check: ## Benchmark performance con soglie (staging large)
 	@DB_PATH=data/staging_db.sqlite MAX_SQL_READ_MS=1500 MAX_EXPORT_MS=1500 \
 	  python scripts/perf_bench.py --db data/staging_db.sqlite
 
+# Test workflow locali
+test-workflows: ## Test workflow prima del push GitHub
+	@python scripts/test_workflows_local.py
+
 # Help
 help: ## Mostra questo aiuto
 	@echo "TokIntel Makefile - Comandi disponibili:"
