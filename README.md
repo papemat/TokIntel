@@ -324,6 +324,8 @@ Il link compare automaticamente nel commento della PR.
 
 ![Esempio Monitoraggio CI](docs/images/monitoraggio-ci-example.png)
 
+![Anteprima badge CI con glow](docs/images/ci-badges-preview.png)
+
 ---
 
 **TokIntel** - Analisi intelligente di contenuti video multimodali 🎬🔍

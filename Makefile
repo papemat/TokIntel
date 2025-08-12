@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -412,6 +412,12 @@ ci-tutorial-gif: ## Genera GIF tutorial animata per la sezione Monitoraggio CI
 	@echo "🎬 Generazione GIF tutorial CI Monitoring..."
 	$(PY) scripts/generate_ci_tutorial_gif.py
 	@echo "✅ GIF tutorial generata: docs/images/ci-monitoring-tutorial.gif"
+
+.PHONY: ci-badges-preview
+ci-badges-preview: ## Genera anteprima badge CI con effetto glow
+	@echo "✨ Generazione anteprima badge CI con glow..."
+	$(PY) scripts/generate_ci_badges_preview.py
+	@echo "✅ Anteprima badge CI generata: docs/images/ci-badges-preview.png"
 
 lint: ## Linting con ruff
 	pip install ruff || true
