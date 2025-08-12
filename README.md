@@ -77,6 +77,11 @@ In questo modo:
 - Solo l'E2E green è requisito per il merge
 - I test unit legacy marcati `xfail` non bloccano il merge
 
+## Sprint 4 Additions
+- **E2E Playwright**: real UI interaction test (`make test-e2e-playwright` target optional)
+- **dash/ unit tests**: +20% coverage goal on helpers
+- **Export Health Report**: runs in CI to summarize exports (count, avg size, extensions)
+
 ## 🏃‍♂️ Run Locally
 
 ```bash

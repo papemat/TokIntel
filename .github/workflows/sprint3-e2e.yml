@@ -52,3 +52,7 @@ jobs:
     - name: Run linting
       run: |
         make lint-sprint3
+    
+    - name: Export health report
+      run: |
+        make export-health

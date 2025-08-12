@@ -364,6 +364,16 @@ ci-debug: ## Debug CI locale (E2E con debug)
 	@echo "🧪 CI Debug mode (E2E_DEBUG=1)..."
 	E2E_DEBUG=1 TI_PORT=$(TI_PORT) TI_AUTO_EXPORT=1 $(PY) -m pytest -q -m e2e tests/e2e/test_streamlit_ui.py -vv
 
+.PHONY: test-e2e-playwright
+test-e2e-playwright: ## E2E Playwright real UI interaction
+	@echo "🎭 E2E Playwright real UI test..."
+	$(PY) -m pytest -q tests/e2e/test_streamlit_ui_playwright.py
+
+.PHONY: export-health
+export-health: ## Export health report
+	@echo "📊 Export health report..."
+	$(PY) scripts/export_health.py
+
 lint: ## Linting con ruff
 	pip install ruff || true
 	ruff check . || true
