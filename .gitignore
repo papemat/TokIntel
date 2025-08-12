@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Streamlit & cache
+.streamlit/
+.pytest_cache/
+
+# Export/Report generati
+exports/
+reports/perf_*.json
+reports/perf_*.md
+
+# Node (se presente)
+node_modules/
+
+# Database files (opzionale - rimuovi se vuoi versionare)
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Media files
+data/media/
+data/frames/
+data/thumbnails/
+
+# Indexes (generati)
+data/indexes/
+
+# OCR results
+data/ocr/
+
+# Logs
+*.log

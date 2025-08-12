@@ -1,0 +1,58 @@
+# TokIntel Configuration
+
+# Database settings
+database:
+  path: "data/db.sqlite"
+  backup_dir: "data/backups"
+
+# Audio processing
+audio:
+  model: "base"  # "tiny", "base", "small", "medium", "large"
+  language: "auto"
+  output_dir: "data/transcripts"
+  chunk_length: 30
+
+# Visual processing
+visual:
+  sampling_mode: "scene"     # "scene" | "fps"
+  fps: 0.5                   # usato se sampling_mode=fps
+  scene_threshold: 0.4       # 0.3–0.5 buono
+  max_frames: 40
+  resize_width: 512
+  frames_dir: "data/frames"
+  video_dir: "data/media/video"
+
+# OCR settings
+ocr:
+  enabled: true
+  langs: ["it","en"]
+  out_dir: "data/ocr"
+
+# Vision/CLIP settings
+vision:
+  clip_model: "clip-ViT-B-32"
+  batch_size: 32
+  normalize: true
+  image_index_path: "data/indexes/visual.index"
+  image_map_path: "data/indexes/visual_map.json"
+  image_dim: 512
+  use_gpu_faiss: false
+
+# Search settings
+search:
+  index_path: "data/indexes/text.index"
+  map_path: "data/indexes/text_map.json"
+  model: "all-MiniLM-L6-v2"
+  dimension: 384
+
+# Compute settings
+compute:
+  gpu_mode: "auto"  # "auto", "on", "off"
+  batch_size: 32
+  num_workers: 4
+
+# API settings
+api:
+  host: "0.0.0.0"
+  port: 8000
+  debug: false

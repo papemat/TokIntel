@@ -1,0 +1,34 @@
+# Core dependencies
+fastapi
+uvicorn
+sqlite3
+pyyaml
+numpy
+pandas==2.2.*
+
+# Audio processing
+openai-whisper
+ffmpeg-python
+
+# Visual processing
+opencv-python-headless
+easyocr
+Pillow
+
+# AI/ML
+sentence-transformers
+torch
+faiss-cpu
+faiss-gpu
+
+# Dashboard
+streamlit>=1.25
+
+# Utilities
+requests
+python-dotenv
+tqdm
+pathlib
+
+# Testing (pinned for CI stability)
+pytest==8.*

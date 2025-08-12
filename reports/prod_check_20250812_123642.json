@@ -1,0 +1,48 @@
+{
+  "timestamp": "20250812_123642",
+  "git_rev": "n/a",
+  "environment": {
+    "TOKINTEL_VERSION": "local",
+    "FF_DISABLE_CACHE": "0",
+    "CACHE_TTL_SECONDS": "0",
+    "PYTHON": "3.9.6"
+  },
+  "database": {
+    "path": "data/db.sqlite",
+    "exists": true,
+    "size_mb": 0.04,
+    "modified": "2025-08-12 12:36:38"
+  },
+  "stats": {
+    "video_count": 5,
+    "status_dist": {
+      "ok": 2,
+      "skipped": 1,
+      "timeout": 2
+    },
+    "columns": [
+      "id",
+      "url",
+      "title",
+      "description",
+      "duration",
+      "created_at",
+      "hook",
+      "takeaways",
+      "tags",
+      "status",
+      "collection_id",
+      "collection_name",
+      "author",
+      "duration_sec",
+      "published_at"
+    ],
+    "indexes": [
+      "idx_videos_collid",
+      "idx_videos_url",
+      "idx_videos_title",
+      "idx_videos_status",
+      "sqlite_autoindex_videos_1"
+    ]
+  }
+}
