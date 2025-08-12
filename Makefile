@@ -3,7 +3,7 @@
 DB_PATH ?= data/db.sqlite
 PY ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else which python; fi)
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -264,3 +264,9 @@ help: ## Mostra questo aiuto
 	@echo "  make go-live         # Checklist completa produzione"
 	@echo "  make prod-check      # Check pre-deploy completo"
 	@echo "  make perf-check      # Benchmark performance"
+
+github-auto-setup: ## Crea repo GitHub, fa push, aggiunge label e lancia i workflow
+	@bash scripts/github_auto_setup.sh
+
+test-dashboard: ## Avvia la dashboard (headless), verifica che risponda e chiudi
+	@python scripts/test_dashboard_local.py --port 8503 --timeout 40
