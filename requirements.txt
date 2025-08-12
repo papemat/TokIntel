@@ -23,6 +23,7 @@ faiss-gpu
 
 # Dashboard
 streamlit>=1.25
+matplotlib>=3.8
 
 # Utilities
 requests

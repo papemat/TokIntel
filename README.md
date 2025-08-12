@@ -4,6 +4,7 @@
 [![Perf Nightly](https://img.shields.io/github/actions/workflow/status/<ORG>/<REPO>/perf-nightly.yml?branch=main&label=Perf%20Nightly)](https://github.com/<ORG>/<REPO>/actions/workflows/perf-nightly.yml)
 [![Go‑Live Docs](https://img.shields.io/badge/docs-go--live-brightgreen)](docs/GO_LIVE_CHECKLIST.md)
 [![Enterprise Setup](https://img.shields.io/badge/docs-enterprise--setup-informational)](docs/ENTERPRISE_SETUP.md)
+[![Performance Dashboard](https://img.shields.io/badge/dashboard-perf--trends-orange?style=flat&logo=chart-line)](http://localhost:8502)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](#)
 
 TokIntel è un sistema di analisi multimodale per video che combina:

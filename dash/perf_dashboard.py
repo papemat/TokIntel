@@ -2,7 +2,25 @@ import os, json
 from pathlib import Path
 import pandas as pd
 import streamlit as st
-import matplotlib.pyplot as plt
+
+# Fail-soft import per matplotlib
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    st.error("""
+    **Matplotlib non è installato.** 
+    
+    Esegui:
+    ```bash
+    pip install matplotlib
+    ```
+    
+    Oppure:
+    ```bash
+    pip install -r requirements.txt
+    ```
+    """)
+    st.stop()
 
 st.set_page_config(page_title="TokIntel – Performance Trends", layout="wide")
 
