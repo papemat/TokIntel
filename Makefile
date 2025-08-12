@@ -2,7 +2,7 @@
 
 DB_PATH ?= data/db.sqlite
 PY ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else which python; fi)
-COVERAGE_MIN ?= 35
+COVERAGE_MIN ?= 40
 
 .PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run
 
@@ -286,11 +286,17 @@ coverage-html: ## Genera report HTML (htmlcov/)
 coverage-clean: ## Pulisce artefatti coverage
 	rm -rf .coverage coverage.xml htmlcov
 
-coverage-explorer: ## Avvia la mini dashboard Streamlit (usa coverage.xml/htmlcov correnti)
+coverage-explorer: ## Avvia dashboard Streamlit (richiede coverage.xml/htmlcov)
 	.venv/bin/python -m streamlit run tools/coverage_explorer.py
 
 coverage-export: ## Esporta CSV/JSON con i file peggiori (richiede coverage.xml)
 	.venv/bin/python tools/export_coverage_summary.py --xml coverage.xml --top 25 --out-csv coverage_summary_top.csv --out-json coverage_summary_top.json
+
+coverage-todo: ## Genera coverage_todo.md dal CSV export
+	.venv/bin/python tools/generate_coverage_todo.py --csv coverage_summary_top.csv --out coverage_todo.md
+
+coverage-delta-dirs: ## Delta vs main (richiede coverage.xml e base in /tmp/base_coverage.xml)
+	.venv/bin/python tools/coverage_delta_dirs.py --base /tmp/base_coverage.xml --head coverage.xml --depth 1 --out-md coverage_delta_dirs.md
 
 lint: ## Linting con ruff
 	pip install ruff || true

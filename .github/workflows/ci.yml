@@ -4,43 +4,40 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch:
-permissions:
-  contents: read
-  pull-requests: read
 jobs:
-  build-and-test:
+  ci:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11"]
+        python-version: [ "3.10", "3.11" ]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Cache pip
-        uses: actions/cache@v4
+          fetch-depth: 0
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
           restore-keys: |
-            pip-${{ runner.os }}-${{ matrix.python-version }}-
-      - name: Install deps
+            ${{ runner.os }}-pip-
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-      - name: Optional deps
+          pip install pytest-xdist
+        env:
+          PIP_CACHE_DIR: ~/.cache/pip
+      - name: Run tests with coverage (parallel)
+        env:
+          COVERAGE_MIN: 40
         run: |
-          [ -f requirements-optional.txt ] && pip install -r requirements-optional.txt || true
-      - name: Lint
-        run: |
-          pip install ruff || true
-          ruff check . || true
-      - name: Run tests with coverage
-        run: |
-          pytest -q --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=${{ env.COVERAGE_MIN || 35 }}
+          pytest -q -n auto --dist=loadscope --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=${COVERAGE_MIN}
       - name: Generate HTML report
         run: coverage html
       - name: Export worst-files CSV/JSON
@@ -54,14 +51,6 @@ jobs:
             htmlcov
             tools/coverage_explorer.py
           retention-days: 7
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          flags: py-${{ matrix.python-version }},unit
-          fail_ci_if_error: true
-          verbose: true
       - name: Upload coverage summary (CSV/JSON)
         uses: actions/upload-artifact@v4
         with:
@@ -70,3 +59,134 @@ jobs:
             coverage_summary_top.csv
             coverage_summary_top.json
           retention-days: 7
+      - name: Generate Coverage ToDo Plan
+        run: python tools/generate_coverage_todo.py --csv coverage_summary_top.csv --out coverage_todo.md
+      - name: Upload Coverage ToDo Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-todo
+          path: coverage_todo.md
+          retention-days: 7
+      - name: Generate BASE coverage (main)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+          mkdir -p /tmp/base_cov && cp -r . /tmp/base_cov/src
+          cd /tmp/base_cov/src
+          git checkout --force origin/main
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          pytest -q --cov=. --cov-report=xml --cov-report=term-missing || true
+          cp coverage.xml /tmp/base_coverage.xml || true
+      - name: Compute coverage delta per directory
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          python tools/coverage_delta_dirs.py --base /tmp/base_coverage.xml --head coverage.xml --depth 1 --out-md coverage_delta_dirs.md
+      - name: Upload coverage delta (MD)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-delta-dirs
+          path: coverage_delta_dirs.md
+          retention-days: 7
+      - name: Read coverage_todo.md for comment
+        if: ${{ github.event_name == 'pull_request' }}
+        id: read_todo
+        run: |
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          cat coverage_todo.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Read coverage_delta_dirs.md
+        if: ${{ github.event_name == 'pull_request' }}
+        id: read_covdelta
+        run: |
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          cat coverage_delta_dirs.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          flags: py-${{ matrix.python-version }},unit
+          fail_ci_if_error: true
+          verbose: true
+      - name: Comment Coverage ToDo on PR
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## 📋 Coverage Action Plan
+            Il seguente elenco mostra i file con più linee mancanti, ordinati per priorità.
+            È stato generato automaticamente dalla CI.
+
+            🔗 **Anteprima HTML (GitHub Pages)**:
+            https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/index.html
+
+            🔗 **Artifact della run** (HTML, CSV/JSON, ToDo):
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            <details>
+            <summary>📄 coverage_todo.md</summary>
+
+            ```markdown
+            ${{ steps.read_todo.outputs.content }}
+            ```
+
+            </details>
+      - name: Comment Coverage Delta per Directory
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ${{ steps.read_covdelta.outputs.content }}
+
+  coverage-pages:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+      - name: Run tests (generate coverage.xml)
+        continue-on-error: true
+        env:
+          COVERAGE_MIN: 0
+        run: |
+          pytest -q --cov=. --cov-report=xml --cov-report=term-missing
+      - name: Generate HTML report
+        run: |
+          coverage html || true
+          if [ ! -d "htmlcov" ]; then
+            mkdir -p htmlcov && echo "<h1>No coverage available</h1><p>Tests failed or no data.</p>" > htmlcov/index.html
+          fi
+      - name: Prepare PR folder
+        id: prep
+        run: |
+          PR_DIR="pr-${{ github.event.pull_request.number }}"
+          rm -rf out && mkdir -p "out/${PR_DIR}"
+          cp -r htmlcov/* "out/${PR_DIR}/"
+          echo "prdir=${PR_DIR}" >> $GITHUB_OUTPUT
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./out
+          publish_branch: gh-pages
+          keep_files: true
+          commit_message: "docs(coverage): PR #${{ github.event.pull_request.number }} preview"

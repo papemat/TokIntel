@@ -4,9 +4,18 @@ __pycache__/
 .venv/
 .env
 
+# Coverage artifacts & cache
+.coverage
+htmlcov/
+coverage.xml
+.pytest_cache/
+.tox/
+venv/
+build/
+dist/
+
 # Streamlit & cache
 .streamlit/
-.pytest_cache/
 
 # Export/Report generati
 exports/

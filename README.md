@@ -2,7 +2,9 @@
 
 [![CI](https://github.com/papemat/TokIntel/actions/workflows/ci.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/ci.yml)
 [![Perf Nightly](https://github.com/papemat/TokIntel/actions/workflows/perf-nightly.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/perf-nightly.yml)
-[![codecov](https://codecov.io/gh/papemat/TokIntel/branch/main/graph/badge.svg)](https://codecov.io/gh/papemat/TokIntel)
+[![Coverage HTML (main)](https://img.shields.io/badge/Coverage%20HTML-main-blue)](https://papemat.github.io/TokIntel/main/index.html)
+[![Codecov](https://codecov.io/gh/papemat/TokIntel/branch/main/graph/badge.svg)](https://codecov.io/gh/papemat/TokIntel)
+[![Target ≥40%](https://img.shields.io/badge/Target-%E2%89%A540%25-success?color=brightgreen)](https://codecov.io/gh/papemat/TokIntel)
 [![Go‑Live Docs](https://img.shields.io/badge/docs-go--live-brightgreen)](docs/GO_LIVE_CHECKLIST.md)
 [![Enterprise Setup](https://img.shields.io/badge/docs-enterprise--setup-informational)](docs/ENTERPRISE_SETUP.md)
 [![Performance Dashboard](https://img.shields.io/badge/dashboard-perf--trends-orange?style=flat&logo=chart-line)](http://localhost:8502)
@@ -154,33 +156,28 @@ La ricerca ora include:
 - **Tag visivi** (CLIP)
 - **Metadati** (titolo, hook, takeaways)
 
-## 🧪 Test & Coverage
+## Quality • Test & Coverage
+[![Coverage HTML (main)](https://img.shields.io/badge/Coverage%20HTML-main-blue)](https://papemat.github.io/TokIntel/main/index.html)
+[![Codecov](https://codecov.io/gh/papemat/TokIntel/branch/main/graph/badge.svg)](https://codecov.io/gh/papemat/TokIntel)
+[![Target ≥40%](https://img.shields.io/badge/Target-%E2%89%A540%25-success?color=brightgreen)](https://codecov.io/gh/papemat/TokIntel)
 
-### Test Unitari
+### Run tests with coverage
 ```bash
-# Test OCR
-python -m pytest tests/test_ocr_and_frames.py -v
-
-# Test CLIP
-python -m pytest tests/test_vision_clip.py -v
-
-# Tutti i test
 make test
 ```
+Generates `coverage.xml` and terminal report.
 
-### Coverage Reporting
+### HTML report
 ```bash
-# Test con coverage (soglia minima 40%)
-make test
-
-# Genera report HTML
 make coverage-html
+```
+Opens `htmlcov/` with per-file details.
 
-# Dashboard interattiva Streamlit
+### Coverage Explorer (Streamlit)
+```bash
 make coverage-explorer
 ```
-
-**Coverage Explorer**: Mini dashboard per navigare la copertura (filtri, linee mancanti). Richiede `coverage.xml`. In CI, scarica l'artifact **coverage-html** (contiene anche `tools/coverage_explorer.py`).
+Mini dashboard per navigare la copertura (filtri, linee mancanti). Richiede `coverage.xml`. In CI, scarica l'artifact **coverage-html** (contiene anche `tools/coverage_explorer.py`).
 
 ### Export CSV/JSON dei file peggiori
 ```bash
@@ -189,6 +186,20 @@ make coverage-export
 Genera:
 - `coverage_summary_top.csv`: elenco ordinato (missed desc) dei file con più linee scoperte
 - `coverage_summary_top.json`: stesso contenuto in JSON
+
+### Coverage Action Plan (Markdown)
+```bash
+make coverage-todo
+```
+Genera:
+- `coverage_todo.md`: checklist dei file peggiori con % e linee mancanti (artifact **coverage-todo** in CI).
+
+### PR Coverage Preview (GitHub Pages)
+Per ogni Pull Request viene pubblicata una preview HTML del coverage su **GitHub Pages**:
+```
+https://papemat.github.io/TokIntel/pr-<PR_NUMBER>/index.html
+```
+Il link compare automaticamente nel commento della PR.
 
 ## 📊 Performance
 
