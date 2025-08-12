@@ -1,7 +1,6 @@
 # Core dependencies
 fastapi
 uvicorn
-sqlite3
 pyyaml
 numpy
 pandas==2.2.*
@@ -19,7 +18,6 @@ Pillow
 sentence-transformers
 torch
 faiss-cpu
-faiss-gpu
 
 # Dashboard
 streamlit>=1.25
