@@ -1,0 +1,45 @@
+# 🚀 BLOCO DEPLOY COMPLETO - PRONTO PER CURSOR
+
+# === COPIA E INCOLLA QUESTO BLOCO IN CURSOR ===
+
+# 1. Verifica stato attuale
+echo "=== 🔍 VERIFICA PRE-DEPLOY ==="
+git status
+echo ""
+
+# 2. Commit delle modifiche
+echo "=== 📝 COMMIT MODIFICHE ==="
+git add .
+git commit -m "feat: complete deployment package with deploy-full target"
+echo ""
+
+# 3. Test del nuovo target post-deploy-checklist
+echo "=== 🧪 TEST POST-DEPLOY CHECKLIST ==="
+make post-deploy-checklist
+echo ""
+
+# 4. ISTRUZIONI PER DEPLOY COMPLETO
+echo "=== 📋 ISTRUZIONI DEPLOY COMPLETO ==="
+echo ""
+echo "🚀 PER LANCIARE IL DEPLOY COMPLETO:"
+echo ""
+echo "1. Imposta le variabili d'ambiente:"
+echo "   export GITHUB_TOKEN=ghp_xxx..."
+echo "   export GH_OWNER=tuo-username"
+echo "   export GH_REPO=TokIntel"
+echo "   export PRIVATE=false"
+echo "   export CREATE_PR=1"
+echo ""
+echo "2. Lancia il deploy completo:"
+echo "   make deploy-full"
+echo ""
+echo "3. Il comando farà automaticamente:"
+echo "   - Creazione repo GitHub"
+echo "   - Push del codice"
+echo "   - Setup label e workflow"
+echo "   - Check post-deploy"
+echo "   - Monitoraggio workflow"
+echo ""
+echo "=== ✅ PRONTO PER DEPLOY! ==="
+
+# === FINE BLOCO ===
