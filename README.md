@@ -34,6 +34,15 @@ Questa sezione mostra lo stato in tempo reale dei workflow CI/CD per TokIntel e 
 - **Rosso** → errore nel workflow → aprire il log per dettagli
 - **Grigio** → workflow non ancora eseguito
 
+### 🎥 Tutorial: Come usare i badge CI
+
+![Tutorial Monitoraggio CI](docs/images/ci-monitoring-tutorial.gif)
+
+> Questa GIF mostra come:
+> 1. Cliccare sul badge di un workflow
+> 2. Aprire il run più recente
+> 3. Scaricare gli artifact generati
+
 ## 🚀 Setup Rapido
 
 ```bash

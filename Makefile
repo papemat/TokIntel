@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -406,6 +406,12 @@ ci-screenshot: ## Genera screenshot di esempio per la sezione Monitoraggio CI
 	@echo "📸 Generazione screenshot Monitoraggio CI..."
 	$(PY) scripts/generate_ci_monitoring_screenshot.py
 	@echo "✅ Screenshot generato: docs/images/monitoraggio-ci-example.png"
+
+.PHONY: ci-tutorial-gif
+ci-tutorial-gif: ## Genera GIF tutorial animata per la sezione Monitoraggio CI
+	@echo "🎬 Generazione GIF tutorial CI Monitoring..."
+	$(PY) scripts/generate_ci_tutorial_gif.py
+	@echo "✅ GIF tutorial generata: docs/images/ci-monitoring-tutorial.gif"
 
 lint: ## Linting con ruff
 	pip install ruff || true
