@@ -30,6 +30,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           [ -f requirements.txt ] && pip install -r requirements.txt || true
+      - name: Install dev deps
+        run: |
+          [ -f requirements-dev.txt ] && pip install -r requirements-dev.txt || true
       - name: Optional deps
         run: |
           [ -f requirements-optional.txt ] && pip install -r requirements-optional.txt || true
@@ -37,6 +40,13 @@ jobs:
         run: |
           pip install ruff || true
           ruff check . || true
-      - name: Tests
+      - name: Tests with coverage (XML)
         run: |
-          [ -d tests ] && pytest -q || echo "No tests dir, skipping"
+          pytest -q --cov=. --cov-report=xml:coverage.xml --cov-report=term
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: unittests
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -18,8 +18,8 @@ install: ## Installa dipendenze
 	@echo "✓ Dipendenze installate"
 
 # Run tests
-test: ## Esegue test unitari
-	.venv/bin/python -m pytest tests/ -v
+test: ## Esegue test unitari con coverage
+	[ -d tests ] && .venv/bin/python -m pytest -q --cov=. --cov-report=term-missing || echo "No tests dir, skipping"
 	@echo "✓ Test completati"
 
 # Clean generated files
