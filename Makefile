@@ -276,8 +276,7 @@ init: ## Inizializza ambiente (install deps)
 	python -m pip install --upgrade pip
 	[ -f requirements.txt ] && pip install -r requirements.txt || true
 
-test: ## Esegue test unitari
-	[ -d tests ] && pytest -q || echo "No tests dir, skipping"
+# Target test duplicato rimosso - usa quello sopra con coverage
 
 lint: ## Linting con ruff
 	pip install ruff || true
