@@ -2,6 +2,7 @@
 
 DB_PATH ?= data/db.sqlite
 PY ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else which python; fi)
+COVERAGE_MIN ?= 35
 
 .PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run
 
@@ -18,8 +19,8 @@ install: ## Installa dipendenze
 	@echo "✓ Dipendenze installate"
 
 # Run tests
-test: ## Esegue test unitari con coverage
-	[ -d tests ] && .venv/bin/python -m pytest -q --cov=. --cov-report=term-missing || echo "No tests dir, skipping"
+test: ## Esegue test unitari con coverage e soglia minima
+	[ -d tests ] && .venv/bin/python -m pytest -q --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=$(COVERAGE_MIN) || echo "No tests dir, skipping"
 	@echo "✓ Test completati"
 
 # Clean generated files

@@ -29,10 +29,8 @@ jobs:
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          [ -f requirements.txt ] && pip install -r requirements.txt || true
-      - name: Install dev deps
-        run: |
-          [ -f requirements-dev.txt ] && pip install -r requirements-dev.txt || true
+          pip install -r requirements.txt
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
       - name: Optional deps
         run: |
           [ -f requirements-optional.txt ] && pip install -r requirements-optional.txt || true
@@ -40,13 +38,22 @@ jobs:
         run: |
           pip install ruff || true
           ruff check . || true
-      - name: Tests with coverage (XML)
+      - name: Run tests with coverage
         run: |
-          pytest -q --cov=. --cov-report=xml:coverage.xml --cov-report=term
+          pytest -q --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=${{ env.COVERAGE_MIN || 35 }}
+      - name: Generate HTML report
+        run: coverage html
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: htmlcov
+          retention-days: 7
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
-          flags: unittests
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          flags: py-${{ matrix.python-version }},unit
+          fail_ci_if_error: true
+          verbose: true

@@ -1,0 +1,27 @@
+codecov:
+  require_ci_to_pass: true
+
+coverage:
+  status:
+    project:
+      default:
+        target: 35%        # allinea alla soglia locale
+        threshold: 2%      # tollera -2% rispetto al dato inviato
+        informational: false
+    patch:
+      default:
+        target: 60%        # richiedi buon coverage sui cambi
+        threshold: 2%
+        informational: false
+
+ignore:
+  - "docs/**"
+  - "scripts/**"
+  - "*/__init__.py"
+  - "tests/**"
+
+flags:
+  unit:
+    paths:
+      - .
+    carryforward: true
