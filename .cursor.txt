@@ -1,0 +1,46 @@
+# 🚀 DEPLOY COMPLETO TOKINTEL - COMANDI AUTOMATICI
+
+# 1. Verifica che tutto sia pronto
+echo "=== 🔍 VERIFICA PRE-DEPLOY ==="
+git status
+echo ""
+
+# 2. Commit delle modifiche al Makefile
+echo "=== 📝 COMMIT MODIFICHE ==="
+git add Makefile
+git commit -m "feat: add deploy-full target with colored post-deploy-checklist"
+echo ""
+
+# 3. Push delle modifiche
+echo "=== 🚀 PUSH MODIFICHE ==="
+git push
+echo ""
+
+# 4. Test del nuovo target post-deploy-checklist
+echo "=== 🧪 TEST POST-DEPLOY CHECKLIST ==="
+make post-deploy-checklist
+echo ""
+
+# 5. ISTRUZIONI PER DEPLOY COMPLETO
+echo "=== 📋 ISTRUZIONI DEPLOY COMPLETO ==="
+echo ""
+echo "Per lanciare il deploy completo end-to-end:"
+echo ""
+echo "1. Imposta le variabili d'ambiente:"
+echo "   export GITHUB_TOKEN=ghp_xxx..."
+echo "   export GH_OWNER=tuo-username"
+echo "   export GH_REPO=TokIntel"
+echo "   export PRIVATE=false"
+echo "   export CREATE_PR=1"
+echo ""
+echo "2. Lancia il deploy completo:"
+echo "   make deploy-full"
+echo ""
+echo "3. Il comando farà automaticamente:"
+echo "   - Creazione repo GitHub"
+echo "   - Push del codice"
+echo "   - Setup label e workflow"
+echo "   - Check post-deploy"
+echo "   - Monitoraggio workflow (se gh CLI installato)"
+echo ""
+echo "=== ✅ PRONTO PER DEPLOY! ==="

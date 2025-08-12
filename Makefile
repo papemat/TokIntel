@@ -3,7 +3,7 @@
 DB_PATH ?= data/db.sqlite
 PY ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else which python; fi)
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -272,29 +272,51 @@ test-dashboard: ## Avvia la dashboard (headless), verifica che risponda e chiudi
 	@python scripts/test_dashboard_local.py --port 8503 --timeout 40
 
 post-deploy-checklist: ## Apre checklist post-deploy e fa check base
-	@echo "=== CHECKLIST POST-DEPLOY TOKINTEL ==="
-	@echo ""
-	@echo "📋 Apertura checklist..."
-	@if command -v open >/dev/null 2>&1; then \
-		open CHECKLIST_POST_DEPLOY.md; \
-	elif command -v xdg-open >/dev/null 2>&1; then \
-		xdg-open CHECKLIST_POST_DEPLOY.md; \
+	@echo "\033[1;34m=== 🔍 CHECKLIST POST-DEPLOY TOKINTEL ===\033[0m"
+	@if make test-dashboard >/dev/null 2>&1; then \
+		echo "✅ Dashboard locale raggiungibile"; \
 	else \
-		echo "📄 Contenuto checklist:"; \
-		cat CHECKLIST_POST_DEPLOY.md; \
+		echo "❌ Dashboard non raggiungibile"; \
+	fi
+	@if git diff --quiet && git diff --cached --quiet; then \
+		echo "✅ Repository pulito (nessuna modifica non committata)"; \
+	else \
+		echo "❌ Modifiche locali non committate"; \
+	fi
+	@if bash -n scripts/github_auto_setup.sh; then \
+		echo "✅ Script GitHub auto-setup sintatticamente corretto"; \
+	else \
+		echo "❌ Errore di sintassi in github_auto_setup.sh"; \
+	fi
+	@if python -m py_compile scripts/test_dashboard_local.py >/dev/null 2>&1; then \
+		echo "✅ Script test_dashboard_local.py sintatticamente corretto"; \
+	else \
+		echo "❌ Errore di sintassi in test_dashboard_local.py"; \
+	fi
+	@echo "\033[1;34m=== 📄 Apri CHECKLIST_POST_DEPLOY.md per la verifica manuale ===\033[0m"
+
+deploy-full: ## Deploy completo end-to-end su GitHub
+	@echo "\033[1;32m=== 🚀 DEPLOY FINALE TOKINTEL SU GITHUB ===\033[0m"
+	@test -n "$$GITHUB_TOKEN" || (echo "❌ Errore: GITHUB_TOKEN non impostato"; exit 1)
+	@echo "GITHUB_TOKEN: $${GITHUB_TOKEN:0:10}********"
+	@echo "GH_OWNER: $${GH_OWNER:-your-username}"
+	@echo "GH_REPO: $${GH_REPO:-TokIntel}"
+	@echo "PRIVATE: $${PRIVATE:-false}"
+	@echo "CREATE_PR: $${CREATE_PR:-1}"
+	@echo ""
+	@$(MAKE) github-auto-setup
+	@echo ""
+	@$(MAKE) post-deploy-checklist
+	@if command -v gh >/dev/null 2>&1; then \
+		echo ""; \
+		echo "==> Ultimi workflow GitHub Actions:"; \
+		gh run list --limit 5 || true; \
+		echo ""; \
+		echo "==> Pull Request aperte:"; \
+		gh pr list || true; \
+	else \
+		echo "⚠️  GitHub CLI non installato: monitoraggio workflow solo via browser."; \
 	fi
 	@echo ""
-	@echo "🔍 Check base automatici:"
-	@echo "1. Test dashboard locale..."
-	@make test-dashboard
-	@echo ""
-	@echo "2. Verifica repository Git..."
-	@git status --porcelain | wc -l | xargs -I {} echo "   File modificati: {}"
-	@echo "   Branch corrente: $(shell git branch --show-current)"
-	@echo ""
-	@echo "3. Verifica script..."
-	@bash -n scripts/github_auto_setup.sh && echo "   ✅ Script auto-setup: OK" || echo "   ❌ Script auto-setup: ERROR"
-	@python -m py_compile scripts/test_dashboard_local.py && echo "   ✅ Script test dashboard: OK" || echo "   ❌ Script test dashboard: ERROR"
-	@echo ""
-	@echo "✅ Checklist aperta e check base completati!"
-	@echo "📝 Completa manualmente la checklist per verificare il deployment GitHub."
+	@echo "✅ Deployment completato! Apri la repo su GitHub:"
+	@echo "URL: https://github.com/$${GH_OWNER:-your-username}/$${GH_REPO:-TokIntel}"
