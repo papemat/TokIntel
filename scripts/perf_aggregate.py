@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import json, csv, sys, argparse
+import json
+import csv
+import sys
+import argparse
 from pathlib import Path
 
 def collect_perf_reports(report_dir: Path):

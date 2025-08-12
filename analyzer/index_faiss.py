@@ -8,6 +8,78 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 import torch
 
+# ===== SPRINT 2: FAISS Adapter with Dependency Injection =====
+
+try:
+    import faiss  # type: ignore
+    _HAVE_FAISS = True
+except Exception:
+    _HAVE_FAISS = False
+
+
+class IndexBackend:
+    """Abstract interface for index backends"""
+    def add(self, X: np.ndarray, ids=None): 
+        raise NotImplementedError
+    
+    def search(self, q: np.ndarray, top_k: int = 5): 
+        raise NotImplementedError
+    
+    def save(self, path: str): 
+        raise NotImplementedError
+    
+    @classmethod
+    def load(cls, path: str): 
+        raise NotImplementedError
+
+
+class FaissIndex(IndexBackend):
+    """FAISS-based index backend"""
+    def __init__(self, dim: int):
+        if not _HAVE_FAISS:
+            raise RuntimeError("FAISS not available")
+        self.dim = dim
+        self.idx = faiss.IndexFlatIP(dim)
+        self.ids = None
+    
+    def add(self, X: np.ndarray, ids=None):
+        # normalize for cosine via dot
+        X = X.astype("float32")
+        X /= np.clip(np.linalg.norm(X, axis=1, keepdims=True), 1e-12, None)
+        self.idx.add(X)
+        self.ids = ids if ids is not None else np.arange(X.shape[0])
+    
+    def search(self, q: np.ndarray, top_k: int = 5):
+        if q.ndim == 1: 
+            q = q[None, :]
+        q = q.astype("float32")
+        q /= np.clip(np.linalg.norm(q, axis=1, keepdims=True), 1e-12, None)
+        D, I = self.idx.search(q, top_k)
+        # map FAISS row ids back if provided
+        if self.ids is not None:
+            mapped = self.ids[I[0]]
+        else:
+            mapped = I[0]
+        return mapped, D[0]
+    
+    def save(self, path: str):
+        faiss.write_index(self.idx, path + ".faiss")
+        # Save ids mapping if available
+        if self.ids is not None:
+            np.save(path + ".ids.npy", self.ids)
+    
+    @classmethod
+    def load(cls, path: str):
+        idx = faiss.read_index(path + ".faiss")
+        obj = cls(idx.d)
+        obj.idx = idx
+        # Load ids mapping if available
+        try:
+            obj.ids = np.load(path + ".ids.npy")
+        except FileNotFoundError:
+            obj.ids = None
+        return obj
+
 def load_cfg():
     """Load configuration from settings.yaml"""
     with open("config/settings.yaml", "r", encoding="utf-8") as f:

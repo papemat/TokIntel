@@ -1,6 +1,9 @@
 from __future__ import annotations
-import argparse, json, time, sqlite3, pathlib
-from datetime import datetime
+import argparse
+import json
+import time
+import sqlite3
+import pathlib
 
 from playwright.sync_api import sync_playwright
 

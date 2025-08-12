@@ -1,5 +1,9 @@
 from __future__ import annotations
-import pathlib, sqlite3, subprocess, sys, time
+import pathlib
+import sqlite3
+import subprocess
+import sys
+import time
 from typing import Optional, Callable
 from PIL import Image
 import cv2

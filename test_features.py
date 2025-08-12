@@ -4,7 +4,6 @@ Test rapido per verificare le funzionalità dei badge di stato
 """
 
 import sys
-import pathlib
 sys.path.append('.')
 
 from dash.app import get_status_badge, load_database
@@ -29,9 +28,9 @@ def test_status_badges():
             print(f"   ✅ {status} -> {expected}")
             # Verifica che contenga il testo corretto
             if status.upper() in badge:
-                print(f"      ✓ Badge contiene testo corretto")
+                print("      ✓ Badge contiene testo corretto")
             else:
-                print(f"      ❌ Badge non contiene testo corretto")
+                print("      ❌ Badge non contiene testo corretto")
         else:
             print(f"   ✅ {status} -> {expected}")
     

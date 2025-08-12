@@ -1,5 +1,12 @@
 #!/usr/bin/env python
-import os, sys, json, time, sqlite3, argparse, platform, subprocess
+import os
+import sys
+import json
+import time
+import sqlite3
+import argparse
+import platform
+import subprocess
 from pathlib import Path
 
 def git_rev():

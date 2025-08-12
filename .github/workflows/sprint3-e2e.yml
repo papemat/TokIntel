@@ -1,0 +1,54 @@
+name: Sprint 3 E2E Tests
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  sprint3-e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.10, 3.11]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run Sprint 3 E2E tests
+      run: |
+        make test-e2e-only
+      env:
+        TI_PORT: 8510
+        TI_AUTO_EXPORT: 1
+    
+    - name: Upload exports as artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: sprint3-exports-py${{ matrix.python-version }}
+        path: |
+          exports/*.csv
+          exports/*.json
+          logs/*.log
+        if-no-files-found: ignore
+    
+    - name: Run Sprint 3 integration tests
+      run: |
+        make test-sprint3
+    
+    - name: Run linting
+      run: |
+        make lint-sprint3

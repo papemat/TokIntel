@@ -5,7 +5,6 @@ Test script per verificare il funzionamento del dashboard
 import sys
 import pathlib
 import yaml
-import json
 
 def test_imports():
     """Test che tutti i moduli necessari siano importabili"""

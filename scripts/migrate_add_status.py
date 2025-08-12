@@ -52,7 +52,7 @@ def migrate_database():
         cur.execute("SELECT COUNT(*) FROM videos WHERE status = 'ok'")
         ok_videos = cur.fetchone()[0]
         
-        print(f"✅ Migrazione completata!")
+        print("✅ Migrazione completata!")
         print(f"   - Totale video: {total_videos}")
         print(f"   - Video con status 'ok': {ok_videos}")
         

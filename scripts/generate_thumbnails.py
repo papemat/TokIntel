@@ -1,5 +1,7 @@
 from __future__ import annotations
-import pathlib, subprocess, re, sys
+import pathlib
+import subprocess
+import sys
 
 VIDEO_DIR = pathlib.Path("data/media/video")
 THUMB_DIR = pathlib.Path("data/thumbnails")

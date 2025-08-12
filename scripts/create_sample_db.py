@@ -8,8 +8,6 @@ import sqlite3
 import pathlib
 import yaml
 import argparse
-import sys
-from datetime import datetime, timedelta
 
 def create_sample_database(staging=False, large=False):
     """Crea un database di test con video con stati diversi"""

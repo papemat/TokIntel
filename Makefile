@@ -3,8 +3,9 @@
 DB_PATH ?= data/db.sqlite
 PY ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else which python; fi)
 COVERAGE_MIN ?= 40
+TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -297,6 +298,67 @@ coverage-todo: ## Genera coverage_todo.md dal CSV export
 
 coverage-delta-dirs: ## Delta vs main (richiede coverage.xml e base in /tmp/base_coverage.xml)
 	.venv/bin/python tools/coverage_delta_dirs.py --base /tmp/base_coverage.xml --head coverage.xml --depth 1 --out-md coverage_delta_dirs.md
+
+# Sprint 1 Test Targets
+test-sprint1: ## Esegue test Sprint 1 veloci
+	.venv/bin/python -m pytest -q tests/unit tests/smoke -k "ocr or frame or vision or fetch or imports" --maxfail=1 --disable-warnings
+
+coverage-sprint1: ## Genera coverage Sprint 1
+	.venv/bin/python -m pytest -q -n auto --cov=. --cov-report=term-missing --cov-report=xml --maxfail=999 -k "ocr or frame or vision or fetch or imports"
+
+# Sprint 2 Test Targets (FAISS/Index + Multimodal Search)
+test-sprint2: ## Esegue test Sprint 2 veloci
+	.venv/bin/python -m pytest -q tests/unit -k "index_faiss or search_multimodal" --maxfail=1 --disable-warnings
+
+coverage-sprint2: ## Genera coverage Sprint 2
+	.venv/bin/python -m pytest -q --cov=. --cov-report=term-missing --cov-report=xml --maxfail=999 -k "index_faiss or search_multimodal"
+
+# Sprint 2 Micro-review (Robustezza + Edge Cases)
+test-sprint2-review: ## Micro-review Sprint 2: robustezza, duplicati, fallback
+	.venv/bin/python -m pytest -q tests/unit/test_sprint2_robustness.py -v --maxfail=1
+
+coverage-sprint2-review: ## Coverage micro-review Sprint 2
+	.venv/bin/python -m pytest -q tests/unit/test_sprint2_robustness.py --cov=analyzer --cov-report=term-missing --cov-report=xml
+
+# Sprint 3 Test Targets (Orchestrator + E2E)
+test-sprint3: ## Esegue test Sprint 3 veloci
+	.venv/bin/python -m pytest -q tests/integration/test_orchestrator.py tests/e2e/test_streamlit_ui.py -x
+
+
+
+coverage-sprint3: ## Genera coverage Sprint 3
+	.venv/bin/python -m pytest -q --cov=analyzer.orchestrator --cov=dash --cov-report=term-missing
+
+# UI and Development
+run-ui: ## Avvia UI Streamlit con porta configurabile
+	@echo "Starting Streamlit (headless) on port $(TI_PORT)..."
+	$(PY) -m streamlit run dash/app.py --server.port $(TI_PORT) --server.headless true
+
+.PHONY: kill-port-windows
+kill-port-windows:
+	@powershell -ExecutionPolicy Bypass -File scripts/kill_port.ps1 -Port $(TI_PORT)
+
+.PHONY: kill-port-unix
+kill-port-unix:
+	@bash scripts/kill_port.sh $(TI_PORT)
+
+.PHONY: kill-port
+kill-port:
+	@echo "Killing anything on port $(TI_PORT)..."
+	@$(PY) scripts/kill_port.py $(TI_PORT) || true
+	@case "$$(uname -s)" in \
+		MINGW*|MSYS*|CYGWIN* ) $(MAKE) kill-port-windows ;; \
+		* ) $(MAKE) kill-port-unix ;; \
+	esac
+
+.PHONY: test-e2e-only
+test-e2e-only: kill-port
+	TI_PORT=$(TI_PORT) TI_AUTO_EXPORT=1 $(PY) -m pytest -q -m e2e tests/e2e/test_streamlit_ui.py
+
+lint-sprint3: ## Linting specifico per Sprint 3
+	@$(PY) -m pip install -q ruff || true
+	$(PY) -m ruff check . --fix || true
+	$(PY) -m ruff check .
 
 lint: ## Linting con ruff
 	pip install ruff || true

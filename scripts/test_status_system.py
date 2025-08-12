@@ -9,7 +9,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from dash.app import (
     Status, _STATUS_META, norm_status, get_status_badge, 
-    render_title_with_status, status_filter_ui
+    render_title_with_status
 )
 
 def test_status_system():

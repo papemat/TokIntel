@@ -1,4 +1,5 @@
-import argparse, xml.etree.ElementTree as ET
+import argparse
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from collections import defaultdict
 def parse(xml_path: str):

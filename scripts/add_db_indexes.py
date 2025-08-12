@@ -92,7 +92,7 @@ def add_database_indexes():
     cur.execute("SELECT status, COUNT(*) FROM videos GROUP BY status")
     status_counts = dict(cur.fetchall())
     
-    print(f"\n📊 Database info:")
+    print("\n📊 Database info:")
     print(f"  Video totali: {video_count}")
     for status, count in status_counts.items():
         print(f"  {status}: {count}")

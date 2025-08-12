@@ -1,5 +1,6 @@
-import os, pathlib, xml.etree.ElementTree as ET
-from typing import List, Dict, Tuple
+import os
+import xml.etree.ElementTree as ET
+from typing import Dict
 import streamlit as st
 
 st.set_page_config(page_title="Coverage Explorer", layout="wide")

@@ -4,19 +4,35 @@ Dashboard Streamlit per ricerca multimodale (testo + visione)
 """
 
 import streamlit as st
+
+# Health check endpoint for E2E testing
+if st.query_params.get("health") == "1":
+    st.write("OK"); st.stop()
+
+# Trigger search for E2E testing (without UI clicks)
+if st.query_params.get("trigger_search") == "1":
+    query = "e2e-smoke"
+    try:
+        # Call existing search pipeline
+        results = search_by_text(query, alpha=0.6, top_k=5)
+        if results:
+            st.write("TRIGGER_OK")
+        else:
+            st.write("TRIGGER_EMPTY")
+    except Exception as e:
+        st.write(f"TRIGGER_ERROR: {str(e)}")
+    st.stop()
+
 import yaml
 import json
 import pathlib
-import numpy as np
 import faiss
 import sqlite3
 import pandas as pd
 from PIL import Image
 import io
 import base64
-from typing import List, Dict, Any, Optional
-import torch
-import subprocess
+from typing import List, Dict, Optional
 from enum import Enum
 import html
 from collections import Counter
@@ -27,6 +43,31 @@ import platform
 # Feature Flags via environment variables
 FF_DISABLE_CACHE = os.getenv("FF_DISABLE_CACHE", "0") == "1"
 CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "0"))  # 0 = infinito
+
+# Sprint 3: Environment variables for testing and export
+TI_PORT = int(os.getenv("TI_PORT", "8510"))
+TI_AUTO_EXPORT = os.getenv("TI_AUTO_EXPORT", "0") == "1"
+TI_EXPORT_DIR = os.getenv("TI_EXPORT_DIR", "exports")
+USE_NUMPY_INDEX = os.getenv("TOKINTEL_USE_NUMPY_INDEX", "0") == "1"
+EMBED_MODE = os.getenv("TOKINTEL_EMBEDDING_MODE", "default")
+
+# Create directories
+os.makedirs(TI_EXPORT_DIR, exist_ok=True)
+os.makedirs("logs", exist_ok=True)
+
+# Structured logging setup
+import logging
+from datetime import datetime
+log_filename = f"logs/streamlit_{datetime.now().strftime('%Y%m%d')}.log"
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_filename),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 if FF_DISABLE_CACHE:
     # wrapper no-op per usare la stessa API
@@ -71,7 +112,7 @@ def optimize_sqlite_connection(conn):
         except sqlite3.OperationalError:
             pass  # Not supported on this system
         conn.commit()
-    except Exception as e:
+    except Exception:
         # Fail silently - optimizations are optional
         pass
 
@@ -709,6 +750,19 @@ def main():
         # Search button
         if st.button("🔍 Cerca", type="primary"):
             if query.strip():
+                # Sprint 3: Structured logging and auto-export
+                import uuid
+                import re
+                from datetime import datetime
+                
+                query_id = str(uuid.uuid4())[:8]
+                start_time = time.time()
+                
+                # Create slugified query for filename
+                query_slug = re.sub(r'[^a-zA-Z0-9]', '_', query.strip())[:30]
+                
+                logger.info(f"Search started - query_id: {query_id}, query: '{query}', alpha: {alpha}, top_k: {top_k}")
+                
                 with st.spinner("Ricerca in corso..."):
                     results = search_by_text(query, alpha, top_k)
                     
@@ -742,6 +796,33 @@ def main():
                     st.session_state["last_results"] = export_rows
                     
                     display_results(results, videos, score_threshold)
+                    
+                    # Sprint 3: Structured logging and auto-export
+                    end_time = time.time()
+                    duration_ms = int((end_time - start_time) * 1000)
+                    results_count = len(export_rows)
+                    
+                    logger.info(f"Search completed - query_id: {query_id}, duration_ms: {duration_ms}, results_count: {results_count}")
+                    
+                    # Auto-export if enabled
+                    if TI_AUTO_EXPORT and export_rows:
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        csv_filename = f"{timestamp}_{query_slug}.csv"
+                        json_filename = f"{timestamp}_{query_slug}.json"
+                        
+                        csv_path = os.path.join(TI_EXPORT_DIR, csv_filename)
+                        json_path = os.path.join(TI_EXPORT_DIR, json_filename)
+                        
+                        # CSV export
+                        df_export = pd.DataFrame(export_rows)
+                        df_export.to_csv(csv_path, index=False, encoding="utf-8")
+                        
+                        # JSON export
+                        with open(json_path, "w", encoding="utf-8") as f:
+                            json.dump(export_rows, f, ensure_ascii=False, indent=2)
+                        
+                        logger.info(f"Auto-export completed - query_id: {query_id}, csv: {csv_filename}, json: {json_filename}")
+                        print(f"Search completed. Export saved to {csv_path} and {json_path}")
                     
                     # Export button
                     st.markdown("---")
@@ -853,6 +934,10 @@ def main():
     # Footer
     st.markdown("---")
     st.markdown("🎬 **TokIntel** - Dashboard Multimodale per Analisi Video")
+
+# Sprint 3: Health check endpoint for E2E tests
+if st.query_params.get("health") == "1":
+    st.write("OK")
 
 if __name__ == "__main__":
     main()

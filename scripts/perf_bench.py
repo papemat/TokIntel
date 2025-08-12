@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-import os, sys, time, json, sqlite3, argparse
+import os
+import sys
+import time
+import json
+import sqlite3
+import argparse
 from pathlib import Path
 from contextlib import contextmanager
 

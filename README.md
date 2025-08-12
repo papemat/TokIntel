@@ -1,6 +1,7 @@
 # TokIntel - Analisi Multimodale di Video
 
 [![CI](https://github.com/papemat/TokIntel/actions/workflows/ci.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/ci.yml)
+[![Sprint 3 E2E](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml)
 [![Perf Nightly](https://github.com/papemat/TokIntel/actions/workflows/perf-nightly.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/perf-nightly.yml)
 [![Coverage HTML (main)](https://img.shields.io/badge/Coverage%20HTML-main-blue)](https://papemat.github.io/TokIntel/main/index.html)
 [![Codecov](https://codecov.io/gh/papemat/TokIntel/branch/main/graph/badge.svg)](https://codecov.io/gh/papemat/TokIntel)
@@ -30,6 +31,22 @@ make index-cpu
 
 # 4. Cerca (testuale + OCR)
 make search q="CTA che converte"
+```
+
+## 🎯 Sprint 3 Quickstart
+
+```bash
+# UI con export automatico e porta fissa
+TI_AUTO_EXPORT=1 TI_PORT=8510 make run-ui
+
+# In un altro terminale, esegui i test
+make test-sprint3
+
+# Solo test E2E
+make test-e2e-only
+
+# CLI orchestrator
+python -m analyzer.orchestrator --query "yoga breathing" --topk 5 --export exports/yoga_results
 ```
 
 ## 🏃‍♂️ Run Locally

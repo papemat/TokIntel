@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-import time, json, pandas as pd, os, sqlite3, sys
+import time
+import pandas as pd
+import os
+import sqlite3
+import sys
 from pathlib import Path
 
 def main():

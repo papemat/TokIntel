@@ -1,5 +1,7 @@
 from __future__ import annotations
-import argparse, subprocess, sys
+import argparse
+import subprocess
+import sys
 from typing import Optional, Callable
 from PIL import Image
 

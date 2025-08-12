@@ -1,11 +1,12 @@
-import csv, argparse
+import csv
+import argparse
 from pathlib import Path
 def main():
   ap = argparse.ArgumentParser()
   ap.add_argument("--csv", default="coverage_summary_top.csv")
   ap.add_argument("--out", default="coverage_todo.md")
   args = ap.parse_args()
-  p = Path(args.csv); 
+  p = Path(args.csv) 
   if not p.exists(): raise SystemExit(f"[!] File CSV non trovato: {p}")
   rows = list(csv.DictReader(p.open(encoding="utf-8")))
   md = []

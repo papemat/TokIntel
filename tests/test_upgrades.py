@@ -7,7 +7,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from dash.app import (
-    sort_videos, get_state, _STATUS_RANK, _STATUS_META,
+    sort_videos, _STATUS_RANK, _STATUS_META,
     norm_status, get_status_badge
 )
 

@@ -20,7 +20,7 @@ torch
 faiss-cpu
 
 # Dashboard
-streamlit>=1.25
+streamlit>=1.36
 matplotlib>=3.8
 
 # Utilities

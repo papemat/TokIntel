@@ -1,9 +1,7 @@
 from __future__ import annotations
 import argparse
 import json
-import pathlib
 import yaml
-import numpy as np
 from sentence_transformers import SentenceTransformer
 import faiss
 
@@ -12,22 +10,41 @@ def load_cfg():
     with open("config/settings.yaml", "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
-def search_text(query: str, index_path: str, map_path: str, model_name: str, device: str = "cpu", top_k: int = 5):
+def search_text(query: str, index_path: str, map_path: str, model_name: str, device: str = "cpu", top_k: int = 5, 
+                index_backend=None, text_encoder=None):
     """Search in text index"""
     # Load index and mapping
-    index = faiss.read_index(index_path)
-    with open(map_path, 'r', encoding='utf-8') as f:
-        url_map = json.load(f)
+    if index_backend is None:
+        index = faiss.read_index(index_path)
+    else:
+        index = index_backend
+    
+    if map_path is not None:
+        with open(map_path, 'r', encoding='utf-8') as f:
+            url_map = json.load(f)
+    else:
+        # For testing, create a simple mapping
+        url_map = {str(i): f"test_url_{i}" for i in range(1000)}
     
     # Encode query
-    model = SentenceTransformer(model_name, device=device)
-    query_emb = model.encode([query], convert_to_numpy=True, normalize_embeddings=True)
+    if text_encoder is None:
+        model = SentenceTransformer(model_name, device=device)
+        query_emb = model.encode([query], convert_to_numpy=True, normalize_embeddings=True)
+    else:
+        query_emb = text_encoder([query])
     
     # Search
-    scores, indices = index.search(query_emb, min(top_k, index.ntotal))
+    if hasattr(index, 'search'):
+        # Use our IndexBackend interface
+        indices, scores = index.search(query_emb[0], min(top_k, len(url_map)))
+    else:
+        # Use FAISS interface
+        scores, indices = index.search(query_emb, min(top_k, index.ntotal))
+        indices = indices[0]
+        scores = scores[0]
     
     results = []
-    for score, idx in zip(scores[0], indices[0]):
+    for score, idx in zip(scores, indices):
         if idx != -1:  # Valid result
             results.append({
                 "url": url_map[str(idx)],
@@ -37,22 +54,41 @@ def search_text(query: str, index_path: str, map_path: str, model_name: str, dev
     
     return results
 
-def search_visual(query: str, index_path: str, map_path: str, model_name: str, device: str = "cpu", top_k: int = 5):
+def search_visual(query: str, index_path: str, map_path: str, model_name: str, device: str = "cpu", top_k: int = 5,
+                 index_backend=None, text_encoder=None):
     """Search in visual index using text query"""
     # Load index and mapping
-    index = faiss.read_index(index_path)
-    with open(map_path, 'r', encoding='utf-8') as f:
-        url_map = json.load(f)
+    if index_backend is None:
+        index = faiss.read_index(index_path)
+    else:
+        index = index_backend
+    
+    if map_path is not None:
+        with open(map_path, 'r', encoding='utf-8') as f:
+            url_map = json.load(f)
+    else:
+        # For testing, create a simple mapping
+        url_map = {str(i): f"test_url_{i}" for i in range(1000)}
     
     # Encode query (CLIP can encode text queries)
-    model = SentenceTransformer(model_name, device=device)
-    query_emb = model.encode([query], convert_to_numpy=True, normalize_embeddings=True)
+    if text_encoder is None:
+        model = SentenceTransformer(model_name, device=device)
+        query_emb = model.encode([query], convert_to_numpy=True, normalize_embeddings=True)
+    else:
+        query_emb = text_encoder([query])
     
     # Search
-    scores, indices = index.search(query_emb, min(top_k, index.ntotal))
+    if hasattr(index, 'search'):
+        # Use our IndexBackend interface
+        indices, scores = index.search(query_emb[0], min(top_k, len(url_map)))
+    else:
+        # Use FAISS interface
+        scores, indices = index.search(query_emb, min(top_k, index.ntotal))
+        indices = indices[0]
+        scores = scores[0]
     
     results = []
-    for score, idx in zip(scores[0], indices[0]):
+    for score, idx in zip(scores, indices):
         if idx != -1:  # Valid result
             results.append({
                 "url": url_map[str(idx)],
@@ -70,19 +106,25 @@ def combine_results(text_results: list, visual_results: list, weight_text: float
     # Add text results
     for result in text_results:
         url = result["url"]
-        combined[url] = {
-            "url": url,
-            "text_score": result["score"],
-            "visual_score": 0.0,
-            "combined_score": result["score"] * weight_text
-        }
+        if url in combined:
+            # Keep the higher text score for duplicates
+            combined[url]["text_score"] = max(combined[url]["text_score"], result["score"])
+            combined[url]["combined_score"] = combined[url]["text_score"] * weight_text + combined[url]["visual_score"] * weight_visual
+        else:
+            combined[url] = {
+                "url": url,
+                "text_score": result["score"],
+                "visual_score": 0.0,
+                "combined_score": result["score"] * weight_text
+            }
     
     # Add visual results
     for result in visual_results:
         url = result["url"]
         if url in combined:
-            combined[url]["visual_score"] = result["score"]
-            combined[url]["combined_score"] += result["score"] * weight_visual
+            # Keep the higher visual score for duplicates
+            combined[url]["visual_score"] = max(combined[url]["visual_score"], result["score"])
+            combined[url]["combined_score"] = combined[url]["text_score"] * weight_text + combined[url]["visual_score"] * weight_visual
         else:
             combined[url] = {
                 "url": url,

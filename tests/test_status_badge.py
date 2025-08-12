@@ -6,7 +6,7 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from dash.app import get_status_badge, norm_status, Status
+from dash.app import get_status_badge, norm_status
 
 def test_badge_contains_data_status():
     """Test that badges contain data-status attribute"""

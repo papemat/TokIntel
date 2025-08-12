@@ -1,5 +1,8 @@
-import os, sys, csv, json, argparse, xml.etree.ElementTree as ET
-from typing import List, Dict, Tuple
+import os
+import sys
+import csv
+import argparse
+import xml.etree.ElementTree as ET
 
 def parse_cobertura(xml_path: str):
   tree = ET.parse(xml_path); root = tree.getroot()

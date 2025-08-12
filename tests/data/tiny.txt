@@ -1,0 +1,4 @@
+Test content for OCR
+This is a sample text file for testing OCR functionality.
+It contains various characters: 123, ABC, abc, !@#$%
+And some special characters: è, à, ñ, ü

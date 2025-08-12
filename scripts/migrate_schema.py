@@ -7,7 +7,6 @@ Gestisce la compatibilità tra vecchi e nuovi schemi del database
 import sqlite3
 import pathlib
 import sys
-from typing import Optional
 
 def migrate_schema(db_path: str = "data/db.sqlite") -> bool:
     """

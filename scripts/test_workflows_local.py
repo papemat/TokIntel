@@ -2,7 +2,6 @@
 """
 Test locale dei workflow prima del push GitHub
 """
-import os
 import sys
 import subprocess
 from pathlib import Path
