@@ -49,6 +49,17 @@ make test-e2e-only
 python -m analyzer.orchestrator --query "yoga breathing" --topk 5 --export exports/yoga_results
 ```
 
+## Dev Smoke (locale)
+
+```bash
+# macOS/Linux
+chmod +x scripts/kill_port.sh scripts/dev_smoke.sh
+./scripts/dev_smoke.sh
+
+# Windows PowerShell
+./scripts/dev_smoke.ps1
+```
+
 ## 🏃‍♂️ Run Locally
 
 ```bash
