@@ -43,11 +43,16 @@ jobs:
           pytest -q --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=${{ env.COVERAGE_MIN || 35 }}
       - name: Generate HTML report
         run: coverage html
+      - name: Export worst-files CSV/JSON
+        run: |
+          python tools/export_coverage_summary.py --xml coverage.xml --top 25 --out-csv coverage_summary_top.csv --out-json coverage_summary_top.json
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-html
-          path: htmlcov
+          path: |
+            htmlcov
+            tools/coverage_explorer.py
           retention-days: 7
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -57,3 +62,11 @@ jobs:
           flags: py-${{ matrix.python-version }},unit
           fail_ci_if_error: true
           verbose: true
+      - name: Upload coverage summary (CSV/JSON)
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-summary
+          path: |
+            coverage_summary_top.csv
+            coverage_summary_top.json
+          retention-days: 7

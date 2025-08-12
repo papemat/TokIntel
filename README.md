@@ -154,8 +154,9 @@ La ricerca ora include:
 - **Tag visivi** (CLIP)
 - **Metadati** (titolo, hook, takeaways)
 
-## 🧪 Test
+## 🧪 Test & Coverage
 
+### Test Unitari
 ```bash
 # Test OCR
 python -m pytest tests/test_ocr_and_frames.py -v
@@ -166,6 +167,28 @@ python -m pytest tests/test_vision_clip.py -v
 # Tutti i test
 make test
 ```
+
+### Coverage Reporting
+```bash
+# Test con coverage (soglia minima 40%)
+make test
+
+# Genera report HTML
+make coverage-html
+
+# Dashboard interattiva Streamlit
+make coverage-explorer
+```
+
+**Coverage Explorer**: Mini dashboard per navigare la copertura (filtri, linee mancanti). Richiede `coverage.xml`. In CI, scarica l'artifact **coverage-html** (contiene anche `tools/coverage_explorer.py`).
+
+### Export CSV/JSON dei file peggiori
+```bash
+make coverage-export
+```
+Genera:
+- `coverage_summary_top.csv`: elenco ordinato (missed desc) dei file con più linee scoperte
+- `coverage_summary_top.json`: stesso contenuto in JSON
 
 ## 📊 Performance
 

@@ -279,6 +279,19 @@ init: ## Inizializza ambiente (install deps)
 
 # Target test duplicato rimosso - usa quello sopra con coverage
 
+# Coverage utilities
+coverage-html: ## Genera report HTML (htmlcov/)
+	.venv/bin/python -m coverage html
+
+coverage-clean: ## Pulisce artefatti coverage
+	rm -rf .coverage coverage.xml htmlcov
+
+coverage-explorer: ## Avvia la mini dashboard Streamlit (usa coverage.xml/htmlcov correnti)
+	.venv/bin/python -m streamlit run tools/coverage_explorer.py
+
+coverage-export: ## Esporta CSV/JSON con i file peggiori (richiede coverage.xml)
+	.venv/bin/python tools/export_coverage_summary.py --xml coverage.xml --top 25 --out-csv coverage_summary_top.csv --out-json coverage_summary_top.json
+
 lint: ## Linting con ruff
 	pip install ruff || true
 	ruff check . || true

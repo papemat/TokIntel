@@ -1,25 +1,47 @@
 codecov:
   require_ci_to_pass: true
+  notify:
+    after_n_builds: 1
 
 coverage:
   status:
     project:
       default:
-        target: 35%        # allinea alla soglia locale
-        threshold: 2%      # tollera -2% rispetto al dato inviato
+        target: 40%
+        threshold: 2%
         informational: false
     patch:
       default:
-        target: 60%        # richiedi buon coverage sui cambi
+        target: 70%
         threshold: 2%
         informational: false
 
+# Escludi directory non rilevanti dal calcolo
 ignore:
   - "docs/**"
   - "scripts/**"
   - "*/__init__.py"
   - "tests/**"
+  - "**/migrations/**"
+  - "**/.venv/**"
+  - "**/venv/**"
+  - "**/.tox/**"
+  - "**/build/**"
+  - "**/dist/**"
 
+# Commenti PR compatti e solo quando la copertura cambia
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: true
+  require_base: false
+  require_head: true
+
+# Evita centinaia di annotazioni riga-per-riga
+github_checks:
+  annotations: false
+
+# Flag di upload (utile con matrix Python)
 flags:
   unit:
     paths:

@@ -1,0 +1,27 @@
+[run]
+branch = True
+source =
+    .
+omit =
+    */__init__.py
+    tests/*
+    scripts/*
+    docs/*
+    **/migrations/*
+    **/.venv/*
+    **/venv/*
+    **/.tox/*
+    **/.pytest_cache/*
+    **/build/*
+    **/dist/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if TYPE_CHECKING:
+    if __name__ == "__main__":
+    ^\s*raise NotImplementedError
+    ^\s*return NotImplemented
+show_missing = True
+precision = 2
+skip_covered = False
