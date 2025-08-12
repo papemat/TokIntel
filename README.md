@@ -1,10 +1,10 @@
 # TokIntel - Analisi Multimodale di Video
 
-[![Prod Check CI](https://github.com/your-username/TokIntel/workflows/Prod%20Check/badge.svg)](https://github.com/your-username/TokIntel/actions/workflows/prod-check.yml)
-[![Performance Matrix](https://img.shields.io/badge/perf-matrix-green?style=flat&logo=speedtest)](https://github.com/your-username/TokIntel/actions/workflows/prod-check.yml)
-[![Performance Trends](https://img.shields.io/badge/perf-trends-blue?style=flat&logo=chart-line)](dash/perf_dashboard.py)
-[![Go-Live Docs](https://img.shields.io/badge/docs-go--live-blue?style=flat&logo=read-the-docs)](docs/GO_LIVE_CHECKLIST.md)
-[![Python 3.11](https://img.shields.io/badge/python-3.11-blue?style=flat&logo=python)](https://www.python.org/downloads/)
+[![Prod Check CI](https://img.shields.io/github/actions/workflow/status/<ORG>/<REPO>/prod-check.yml?branch=main&label=Prod%20Check)](https://github.com/<ORG>/<REPO>/actions/workflows/prod-check.yml)
+[![Perf Nightly](https://img.shields.io/github/actions/workflow/status/<ORG>/<REPO>/perf-nightly.yml?branch=main&label=Perf%20Nightly)](https://github.com/<ORG>/<REPO>/actions/workflows/perf-nightly.yml)
+[![Go‑Live Docs](https://img.shields.io/badge/docs-go--live-brightgreen)](docs/GO_LIVE_CHECKLIST.md)
+[![Enterprise Setup](https://img.shields.io/badge/docs-enterprise--setup-informational)](docs/ENTERPRISE_SETUP.md)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](#)
 
 TokIntel è un sistema di analisi multimodale per video che combina:
 - **Estrazione audio** (Whisper)
