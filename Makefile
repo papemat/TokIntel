@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -372,22 +372,34 @@ test-e2e-playwright: ## E2E Playwright real UI interaction
 
 .PHONY: ci-e2e-playwright
 ci-e2e-playwright: ## E2E Playwright in E2E mode (always green)
-	# Crea directory per artifacts
 	mkdir -p artifacts/e2e
-	# Esegue test Playwright, non fallisce subito per permettere raccolta artifacts
-	npx playwright test || true
+	# non fallire subito per permettere raccolta artifacts
+	$(NODE) playwright test || true
 	@if [ -d playwright-report ]; then cp -r playwright-report artifacts/e2e/; fi
 	@if [ -d test-results ]; then cp -r test-results artifacts/e2e/; fi
 	@if [ -f streamlit_e2e.log ]; then cp streamlit_e2e.log artifacts/e2e/; fi
 
 .PHONY: playwright-install
 playwright-install: ## Install Playwright browsers
-	# Installa Playwright con tutte le dipendenze (fallback senza deps)
-	npx playwright install --with-deps || npx playwright install
+	$(NODE) playwright install --with-deps || $(NODE) playwright install
 
 .PHONY: export-health
 export-health: ## Export health report
 	$(PY) scripts/export_health.py
+
+.PHONY: last-export
+last-export: ## Mostra info ultimo export disponibile
+	$(PY) scripts/last_export.py
+
+.PHONY: e2e-run
+e2e-run: ## E2E RUN: avvio completo con health-poll, test, export, teardown
+	@echo "▶️  E2E RUN: avvio completo con health-poll, test, export, teardown"
+	@if [ -f scripts/dev_e2e.sh ]; then \
+		chmod +x scripts/dev_e2e.sh; \
+		./scripts/dev_e2e.sh; \
+	else \
+		echo "scripts/dev_e2e.sh non trovato. Su Windows usa scripts\\dev_e2e.bat"; \
+	fi
 
 lint: ## Linting con ruff
 	pip install ruff || true

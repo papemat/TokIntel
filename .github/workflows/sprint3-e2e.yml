@@ -7,6 +7,43 @@ on:
     branches: [ main, develop ]
 
 jobs:
+  lint-makefile:
+    name: Lint Makefile (TAB recipes)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Makefile uses TAB for recipe lines
+        run: |
+          python - <<'PY'
+          import sys, re
+          txt = open("Makefile","rb").read().decode("utf-8","replace").splitlines()
+          in_recipe = False
+          bad = False
+          for i, l in enumerate(txt, 1):
+              # Inizio target (linea con colon, esclusi commenti/spazi)
+              if re.match(r"^[^\s#][^:]*:", l):
+                  in_recipe = True
+                  continue
+              # Linea vuota o commento dentro recipe: ok
+              if in_recipe and (l.strip()=="" or l.strip().startswith("#")):
+                  continue
+              # Ricetta valida: deve iniziare con TAB
+              if in_recipe and l.startswith("\t"):
+                  continue
+              # Uscita dalla ricetta: nuova directive/target
+              if in_recipe and re.match(r"^[^\s]", l):
+                  in_recipe = False
+                  # rianalizza questa riga nel prossimo giro
+                  if re.match(r"^[^\s#][^:]*:", l):
+                      in_recipe = True
+                  continue
+              # Riga non vuota, non commento, dentro ricetta ma senza TAB ⇒ errore
+              if in_recipe and l and not l.startswith("\t") and not l.lstrip().startswith("#"):
+                  print(f"Makefile:{i}: expected leading TAB in recipe line -> {l[:60]!r}")
+                  bad = True
+          sys.exit(1 if bad else 0)
+          PY
+
   sprint3-e2e:
     runs-on: ubuntu-latest
     strategy:
@@ -22,27 +59,47 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
+    - name: Cache Playwright browsers
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json', '**/pnpm-lock.yaml', '**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-playwright-
     
-    - name: Run Sprint 3 E2E tests
+    - name: Install deps
       run: |
-        make test-e2e-only
+        python -m pip install -U pip
+        pip install -r requirements.txt
+        pip install ruff
+        pip install pytest-playwright playwright
+        make playwright-install
+    
+    - name: Run E2E
+      run: make test-e2e-only
       env:
         TI_PORT: 8510
         TI_AUTO_EXPORT: 1
     
-    - name: Upload exports as artifacts
+    - name: Run Playwright E2E (E2E mode)
+      env:
+        TI_E2E_MODE: "1"
+        TI_AUTO_EXPORT: "1"
+      run: make ci-e2e-playwright
+    
+    - name: Export health report
+      run: python scripts/export_health.py
+    
+    - name: Upload exports
+      if: success() || failure()
       uses: actions/upload-artifact@v4
       with:
-        name: sprint3-exports-py${{ matrix.python-version }}
+        name: sprint3-exports-${{ matrix.python-version }}
         path: |
           exports/*.csv
           exports/*.json
-          logs/*.log
+          exports/screenshots/*.png
+          exports/screenshots/*.html
         if-no-files-found: ignore
     
     - name: Run Sprint 3 integration tests
@@ -52,7 +109,3 @@ jobs:
     - name: Run linting
       run: |
         make lint-sprint3
-    
-    - name: Export health report
-      run: |
-        make export-health
