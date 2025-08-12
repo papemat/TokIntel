@@ -3,7 +3,7 @@
 DB_PATH ?= data/db.sqlite
 PY ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else which python; fi)
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -270,3 +270,31 @@ github-auto-setup: ## Crea repo GitHub, fa push, aggiunge label e lancia i workf
 
 test-dashboard: ## Avvia la dashboard (headless), verifica che risponda e chiudi
 	@python scripts/test_dashboard_local.py --port 8503 --timeout 40
+
+post-deploy-checklist: ## Apre checklist post-deploy e fa check base
+	@echo "=== CHECKLIST POST-DEPLOY TOKINTEL ==="
+	@echo ""
+	@echo "📋 Apertura checklist..."
+	@if command -v open >/dev/null 2>&1; then \
+		open CHECKLIST_POST_DEPLOY.md; \
+	elif command -v xdg-open >/dev/null 2>&1; then \
+		xdg-open CHECKLIST_POST_DEPLOY.md; \
+	else \
+		echo "📄 Contenuto checklist:"; \
+		cat CHECKLIST_POST_DEPLOY.md; \
+	fi
+	@echo ""
+	@echo "🔍 Check base automatici:"
+	@echo "1. Test dashboard locale..."
+	@make test-dashboard
+	@echo ""
+	@echo "2. Verifica repository Git..."
+	@git status --porcelain | wc -l | xargs -I {} echo "   File modificati: {}"
+	@echo "   Branch corrente: $(shell git branch --show-current)"
+	@echo ""
+	@echo "3. Verifica script..."
+	@bash -n scripts/github_auto_setup.sh && echo "   ✅ Script auto-setup: OK" || echo "   ❌ Script auto-setup: ERROR"
+	@python -m py_compile scripts/test_dashboard_local.py && echo "   ✅ Script test dashboard: OK" || echo "   ❌ Script test dashboard: ERROR"
+	@echo ""
+	@echo "✅ Checklist aperta e check base completati!"
+	@echo "📝 Completa manualmente la checklist per verificare il deployment GitHub."
