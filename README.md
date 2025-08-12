@@ -18,6 +18,22 @@ TokIntel è un sistema di analisi multimodale per video che combina:
 - **Indicizzazione semantica** (FAISS)
 - **Ricerca unificata** (testo + visivo)
 
+## 📊 Monitoraggio CI
+
+Questa sezione mostra lo stato in tempo reale dei workflow CI/CD per TokIntel e fornisce link diretti agli artifact prodotti.
+
+| Badge | Descrizione | Frequenza | Artifact Principali |
+|-------|-------------|-----------|---------------------|
+| [![E2E](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml) | **Test End-to-End completi** su tutti i componenti | Ad ogni push e PR | [E2E Artifacts](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml) *(contiene screenshot, report HTML)* |
+| [![Exports](https://github.com/papemat/TokIntel/actions/workflows/export-health.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/export-health.yml) | Verifica che gli export siano presenti e aggiornati nelle ultime 24h | Giornaliero + manuale | [Latest Exports](https://github.com/papemat/TokIntel/actions/workflows/export-health.yml) |
+| [![Lint Makefile](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml) | Controlla che i comandi del Makefile usino TAB correttamente | Ad ogni PR | *(Nessun artifact — solo log)* |
+| [![Smoke Test](https://github.com/papemat/TokIntel/actions/workflows/smoke-test.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/smoke-test.yml) | Heartbeat giornaliero: esegue test rapidi, verifica export e salva log | Giornaliero + manuale | [Latest Exports](https://github.com/papemat/TokIntel/actions/workflows/smoke-test.yml) · [Streamlit Log](https://github.com/papemat/TokIntel/actions/workflows/smoke-test.yml) |
+
+### ℹ️ Come interpretare i badge
+- **Verde** → tutto OK
+- **Rosso** → errore nel workflow → aprire il log per dettagli
+- **Grigio** → workflow non ancora eseguito
+
 ## 🚀 Setup Rapido
 
 ```bash
@@ -292,6 +308,12 @@ Il link compare automaticamente nel commento della PR.
 3. **Video Reale**: `make download URL="..."`
 4. **Analisi**: `make pipeline URL="..."`
 5. **Ricerca**: Implementa interfaccia di ricerca
+
+---
+
+## 🖼️ Anteprima della sezione Monitoraggio CI
+
+![Esempio Monitoraggio CI](docs/images/monitoraggio-ci-example.png)
 
 ---
 
