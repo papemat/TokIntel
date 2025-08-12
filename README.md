@@ -1,7 +1,8 @@
 # TokIntel - Analisi Multimodale di Video
 
 [![CI](https://github.com/papemat/TokIntel/actions/workflows/ci.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/ci.yml)
-[![Sprint 3 E2E](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml)
+[![E2E](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml)
+[![Exports](https://github.com/papemat/TokIntel/actions/workflows/export-health.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/export-health.yml)
 [![Perf Nightly](https://github.com/papemat/TokIntel/actions/workflows/perf-nightly.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/perf-nightly.yml)
 [![Coverage HTML (main)](https://img.shields.io/badge/Coverage%20HTML-main-blue)](https://papemat.github.io/TokIntel/main/index.html)
 [![Codecov](https://codecov.io/gh/papemat/TokIntel/branch/main/graph/badge.svg)](https://codecov.io/gh/papemat/TokIntel)
@@ -81,6 +82,17 @@ In questo modo:
 - **E2E Playwright**: real UI interaction test (`make test-e2e-playwright` target optional)
 - **dash/ unit tests**: +20% coverage goal on helpers
 - **Export Health Report**: runs in CI to summarize exports (count, avg size, extensions)
+- **Failure artifacts**: in caso di errore E2E Playwright, screenshot + HTML vengono salvati in `exports/screenshots/`.
+- **E2E mode** (stabilizza l'export in test quando non ci sono risultati):
+  ```bash
+  TI_E2E_MODE=1 TI_AUTO_EXPORT=1 make test-e2e-playwright
+  # oppure target dedicato:
+  make ci-e2e-playwright
+  ```
+- **Install browsers** (prima del primo run Playwright):  
+  ```bash
+  make playwright-install
+  ```
 
 ## 🏃‍♂️ Run Locally
 

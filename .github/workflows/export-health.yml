@@ -1,0 +1,49 @@
+name: Export Health
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # ogni giorno 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Verify exports freshness (last 24h)
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import time, sys
+          p = Path("exports")
+          if not p.exists():
+              print("::warning::exports/ non esiste")
+              sys.exit(1)
+          files = sorted(p.glob("*_e2e-force.*"), key=lambda f: f.stat().st_mtime, reverse=True)
+          if not files:
+              print("::error::Nessun export *_e2e-force.* trovato")
+              sys.exit(1)
+          now = time.time()
+          recent = [f for f in files if now - f.stat().st_mtime < 24*3600]
+          print("Ultimi export trovati:")
+          for f in files[:10]:
+              print("-", f, f.stat().st_size, "bytes")
+          if not recent:
+              print("::error::Nessun export nelle ultime 24h")
+              sys.exit(1)
+          print("✅ Export recenti OK")
+          PY
+
+      - name: Upload last exports as artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: latest-exports
+          path: exports/
