@@ -64,6 +64,19 @@ chmod +x scripts/kill_port.sh scripts/dev_smoke.sh
 - **Sprint 3 E2E**: Actions → *Sprint 3 E2E* → **Run workflow** → `debug=true` (stampa tail log E2E).
 - **Unit & Lint (soft)**: Actions → *Unit & Lint (soft)* → **Run workflow** → `debug=true` (lint/unit verbose).
 
+## Branch Protection consigliata
+Per garantire stabilità del main:
+1. Settings → Branches → main → Add rule:
+   - ✅ Require pull request reviews
+   - ✅ Require status checks to pass before merging
+   - Seleziona: `Sprint 3 E2E` (bloccante)
+   - Lascia `Unit & Lint (soft)` non bloccante
+2. Opzionale: "Dismiss stale pull request approvals when new commits are pushed".
+
+In questo modo:
+- Solo l'E2E green è requisito per il merge
+- I test unit legacy marcati `xfail` non bloccano il merge
+
 ## 🏃‍♂️ Run Locally
 
 ```bash

@@ -1,0 +1,12 @@
+# Branch Protection Configuration (esempio)
+# Puoi creare questo file se usi l'API GitHub per gestire le regole
+# (richiede un token PAT con permessi admin:repo_hook, repo)
+# Questo file è solo di esempio:
+
+branch: main
+enforce_admins: true
+required_status_checks:
+  strict: true
+  contexts:
+    - "Sprint 3 E2E"
+restrictions: null
