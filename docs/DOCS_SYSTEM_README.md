@@ -1,22 +1,77 @@
-# 📚 Docs System – One Shot
+# 📚 Docs System – Final One Shot
 
-Questo sistema garantisce che la generazione/aggiornamento della documentazione sia **idempotente**.
+Sistema universale per garantire **idempotenza** nella generazione/aggiornamento della documentazione.
 
-## Componenti
-- `scripts/cursor_docs_strict.sh` → Verifica STRICT (CI): 2 run consecutivi, fallisce se il secondo produce diff.
-- Hook pre-commit (SOFT) → Avvisa ma **non blocca** i commit.
-- Target Makefile:
-  - `docs-generate` (facoltativo, se già presente verrà usato)
-  - `docs-idem-soft` → Avvisa senza fallire
-  - `docs-idem-strict` → Fallisce su non-idempotenza
+## 🎯 Obiettivi
+- ✅ **Idempotenza**: Due run consecutivi → nessuna modifica
+- ✅ **Universale**: Funziona in qualsiasi repo
+- ✅ **Smart**: Rileva generatori automaticamente
+- ✅ **Soft**: Hook pre-commit non bloccante
+- ✅ **Strict**: CI che fallisce su non-idempotenza
 
-## Uso rapido
+## 🔧 Componenti
+
+### Script Strict
+- `scripts/cursor_docs_strict.sh` → Verifica STRICT (CI)
+- Rileva automaticamente: Makefile, Python, Sphinx, MkDocs
+- Fallisce se il secondo run produce diff
+
+### Hook Pre-commit
+- `.git/hooks/pre-commit` → Verifica SOFT (locale)
+- Avvisa ma **non blocca** i commit
+- Perfetto per sviluppo veloce
+
+### Target Makefile
+- `docs-generate` → Generatore principale (fallback no-op)
+- `docs-idem-soft` → Warning senza fallire
+- `docs-idem-strict` → Hard fail su non-idempotenza
+
+## 🚀 Uso Rapido
+
 ```bash
-bash setup_docs_system_one_shot.sh      # setup completo (questo file viene creato da Cursor)
-make docs-idem-soft                     # warning ma non blocca
-make docs-idem-strict                   # hard fail se non idempotente
+# Setup completo
+bash setup_docs_system_final.sh
+
+# Test locale (non blocca)
+make docs-idem-soft
+
+# Test strict (fallisce se non idempotente)
+make docs-idem-strict
+
+# Integrazione CI
+# Copia lo step da CI_STRICT_STEP_YAML.md
 ```
 
-## In CI (GitHub Actions)
+## 🔍 Generatori Supportati
 
-Usa lo step in `CI_STRICT_STEP_YAML.md` per integrare nel workflow.
+Il sistema rileva automaticamente:
+1. **Makefile**: `make docs-generate`
+2. **Python**: `scripts/update_docs_status.py`
+3. **Sphinx**: `docs/conf.py` + `sphinx-build`
+4. **MkDocs**: `mkdocs.yml` + `mkdocs build`
+5. **Fallback**: No-op se nessun generatore trovato
+
+## 📋 Workflow Consigliato
+
+1. **Sviluppo**: Hook soft → sviluppo veloce
+2. **Pre-PR**: `make docs-idem-strict` → verifica locale
+3. **CI**: Step strict → garanzia qualità
+
+## 🛠️ Personalizzazione
+
+### Aggiungere un generatore custom
+```make
+docs-generate:
+	@echo "Generando docs..."
+	@python3 scripts/my_docs_generator.py
+	@echo "✅ Docs generate"
+```
+
+### Hook pre-commit custom
+```bash
+# Modifica .git/hooks/pre-commit per aggiungere altri controlli
+```
+
+## 🎯 Integrazione CI
+
+Usa lo step in `CI_STRICT_STEP_YAML.md` per integrare nel workflow GitHub Actions.
