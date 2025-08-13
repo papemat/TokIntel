@@ -30,6 +30,7 @@
 
 | Timestamp | Esito | Targets | Dettagli |
 |---|---|---|---|
+| 2025-08-13 07:32:58 UTC | 🔴 failure | `self-check` | [run](https://github.com/papemat/TokIntel/actions/runs/16930615197) |
 | 2025-08-13 07:19:45 UTC | 🔴 failure | `self-check` | [run](https://github.com/papemat/TokIntel/actions/runs/16930318768) |
 
 <!-- MONITOR_STATUS:END -->
