@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview docs-ready docs-fail badges-glow-all
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview docs-ready docs-fail badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -440,6 +440,38 @@ badges-glow-all: ## Genera tutti i glow badge (CI + Docs Ready)
 	$(PY) scripts/generate_ci_badges_preview.py
 	$(PY) scripts/generate_docs_ready_glow.py
 	@echo "✅ Tutti i glow badge generati"
+
+.PHONY: ci-visual-refresh
+ci-visual-refresh: ## Rigenera tutto il pacchetto visivo (screenshot + glow + gif)
+	@echo "🎨 Rigenerazione completo pacchetto visivo..."
+	$(MAKE) ci-screenshot
+	$(MAKE) ci-badges-preview
+	$(MAKE) ci-tutorial-gif
+	$(MAKE) docs-ready
+	@echo "✅ Pacchetto visivo completo rigenerato"
+
+.PHONY: docs-check
+docs-check: ## Verifica che gli asset obbligatori esistano
+	@echo "🔍 Verifica asset obbligatori..."
+	@[ -f docs/images/monitoraggio-ci-example.png ] && echo "✅ Screenshot CI presente" || echo "❌ Screenshot CI mancante"
+	@[ -f docs/images/ci-badges-preview.png ] && echo "✅ Glow badge CI presente" || echo "❌ Glow badge CI mancante"
+	@[ -f docs/images/ci-monitoring-tutorial.gif ] && echo "✅ GIF tutorial presente" || echo "❌ GIF tutorial mancante"
+	@[ -f docs/images/docs-ready-badge-glow.png ] && echo "✅ Glow badge Docs presente" || echo "❌ Glow badge Docs mancante"
+	@[ -f docs/status.json ] && echo "✅ Status Docs Ready presente" || echo "❌ Status Docs Ready mancante"
+	@echo "🔍 Verifica completata"
+
+.PHONY: e2e-smoke
+e2e-smoke: ## E2E rapidi con health + export + last export JSON
+	@echo "🚀 E2E smoke test rapido..."
+	$(MAKE) export-health
+	$(MAKE) last-export
+	@echo "✅ E2E smoke test completato"
+
+.PHONY: install-hooks
+install-hooks: ## Installa hook pre-commit per TAB Makefile
+	@echo "🔧 Installazione hook pre-commit..."
+	@chmod +x .git/hooks/pre-commit || true
+	@echo "✅ Hook pre-commit installato"
 
 lint: ## Linting con ruff
 	pip install ruff || true
