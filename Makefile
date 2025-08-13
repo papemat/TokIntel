@@ -691,3 +691,24 @@ docs-ci-all:
 	@$(MAKE) glow-badges || true
 	@$(MAKE) docs-idem-strict
 
+
+.PHONY: docs-idem-strict
+docs-idem-strict:
+	@python3 .github/scripts/autofix_quickstart.py
+	@python3 .github/scripts/autofix_quickstart.py
+	@git diff --quiet || (echo "Non idempotente: diff dopo secondo run"; git --no-pager diff; exit 2)
+
+.PHONY: docs-idem-soft
+docs-idem-soft:
+	@python3 .github/scripts/autofix_quickstart.py || true
+	@python3 .github/scripts/autofix_quickstart.py || true
+	@if ! git diff --quiet; then echo "⚠️  Non idempotente (soft): diff rilevato, exit 0"; git --no-pager diff; fi
+	@exit 0
+
+.PHONY: docs-ci-all
+docs-ci-all:
+	@$(MAKE) docs-autofix || true
+	@$(MAKE) docs-links || true
+	@$(MAKE) docs-lint || true
+	@$(MAKE) glow-badges || true
+	@$(MAKE) docs-idem-strict

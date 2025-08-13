@@ -12,3 +12,12 @@ repos:
         language: system
         pass_filenames: false
         stages: [commit]
+
+  - repo: local
+    hooks:
+      - id: docs-doctor-idempotent-soft
+        name: Docs Doctor Idempotency (soft)
+        entry: bash -c 'python3 .github/scripts/autofix_quickstart.py && python3 .github/scripts/autofix_quickstart.py; if ! git diff --quiet; then echo "⚠️  Non idempotente (soft): vedi diff"; git --no-pager diff; fi; exit 0'
+        language: system
+        pass_filenames: false
+        stages: [commit]
