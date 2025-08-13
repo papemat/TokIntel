@@ -12,7 +12,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with: { python-version: '3.11' }
       - name: Cache pip
@@ -47,7 +47,7 @@ jobs:
     if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with: { python-version: '3.11' }
       - name: Cache pip
@@ -91,7 +91,7 @@ jobs:
           - { sql: 1200, export: 1200 }   # più severo (early warning)
           - { sql: 1500, export: 1500 }   # standard (blocco)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with: { python-version: '3.11' }
       - name: Cache pip
