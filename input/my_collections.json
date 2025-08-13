@@ -1,0 +1,34 @@
+{
+  "collections": [
+    {
+      "name": "Fitness Collection",
+      "description": "Video di fitness e benessere",
+      "items": [
+        {
+          "id": "tiktok_001",
+          "url": "https://www.tiktok.com/@fitness_guru/video/1234567890123456789",
+          "title": "Workout mattutino",
+          "tags": ["fitness", "workout", "morning"]
+        },
+        {
+          "id": "tiktok_002", 
+          "url": "https://www.tiktok.com/@yoga_master/video/9876543210987654321",
+          "title": "Yoga per principianti",
+          "tags": ["yoga", "beginner", "relaxation"]
+        }
+      ]
+    },
+    {
+      "name": "Cooking Collection",
+      "description": "Ricette veloci e facili",
+      "items": [
+        {
+          "id": "tiktok_003",
+          "url": "https://www.tiktok.com/@chef_quick/video/5556667778889990001",
+          "title": "Pasta al pesto in 5 minuti",
+          "tags": ["cooking", "pasta", "quick"]
+        }
+      ]
+    }
+  ]
+}

@@ -591,11 +591,7 @@ tokintel-run:
 
 tokintel-gui:
 	@echo "🌐 Avvio GUI TokIntel…"
-	@( \
-	  python3 - <<'PY' & \
-	  import time, webbrowser; time.sleep(2); webbrowser.open("$(TOK_GUI_URL)"); \
-	  PY \
-	) >/dev/null 2>&1 || true
+	@python3 -c "import time, webbrowser; time.sleep(2); webbrowser.open('$(TOK_GUI_URL)')" >/dev/null 2>&1 || true
 	@python3 launch_tokintel_gui.py
 
 tokintel-validate:
