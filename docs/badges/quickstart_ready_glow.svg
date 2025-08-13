@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210" height="28" role="img" aria-label="Quick Start: Ready">
+  <title>Quick Start: Ready</title>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#555"/>
+      <stop offset="100%" stop-color="#555"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <style>
+      @keyframes pulse {
+        0% { opacity: 0.65; }
+        50% { opacity: 1; }
+        100% { opacity: 0.65; }
+      }
+      @keyframes sweep {
+        0% { transform: translateX(-210px); opacity: 0; }
+        50% { opacity: 0.9; }
+        100% { transform: translateX(210px); opacity: 0; }
+      }
+      .left  { fill: url(#grad); }
+      .right { fill: #2ea043; }
+      .label { fill: #fff; font: 600 11px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif; }
+      .value { fill: #fff; font: 700 12px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif; }
+      .glow  { filter: url(#glow); animation: pulse 2.4s ease-in-out infinite; }
+      .sheen { animation: sweep 2.2s linear infinite; }
+    </style>
+  </defs>
+  <rect class="left" x="0" y="0" width="110" height="28" rx="4"/>
+  <rect class="right glow" x="110" y="0" width="100" height="28" rx="4"/>
+  <g aria-hidden="true">
+    <text class="label" x="55" y="18" text-anchor="middle">Quick Start</text>
+    <text class="value" x="160" y="18" text-anchor="middle">READY</text>
+  </g>
+  <g class="sheen" opacity="0.0">
+    <rect x="-210" y="0" width="210" height="28" fill="url(#grad)"></rect>
+    <rect x="-210" y="0" width="60" height="28" fill="#ffffff" opacity="0.15" />
+  </g>
+</svg>

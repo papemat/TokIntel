@@ -63,39 +63,21 @@ Questa sezione mostra lo stato in tempo reale dei workflow CI/CD per TokIntel e 
 
 ## ⚡ Quick Start – TokIntel GUI
 
-> **Avvia TokIntel in 30 secondi** con la GUI interattiva
+[![Quick Start Ready](docs/badges/quickstart_ready_glow.svg)](#)
 
-| Comando | Descrizione | Status |
-|---------|-------------|--------|
-| `make tokintel-gui-bg` | 🚀 **Avvia GUI** (background + readiness + browser) | ![GUI Ready](https://img.shields.io/badge/GUI-Ready-brightgreen) |
-| `make tokintel-gui-log` | 📜 **Log live** (Ctrl+C per uscire) | ![Log Active](https://img.shields.io/badge/Log-Active-blue) |
-| `make tokintel-gui-health` | 🩺 **Health check** (HTTP 200 quando pronta) | ![Health OK](https://img.shields.io/badge/Health-OK-success) |
-| `make tokintel-gui-stop` | ⛔ **Spegni GUI** (PID cleanup) | ![Stop Clean](https://img.shields.io/badge/Stop-Clean-orange) |
+| Azione                  | Comando | Descrizione |
+|-------------------------|---------|-------------|
+| ▶️ **Avvio rapido**     | `make tokintel-gui-bg` | Avvia in background e apre il browser |
+| 📡 **Monitoraggio log** | `make tokintel-gui-log` | Mostra log in tempo reale |
+| 🩺 **Health check**     | `make tokintel-gui-health` | Verifica se la GUI è attiva (HTTP 200) |
+| ⏹ **Stop pulito**       | `make tokintel-gui-stop` | Ferma il processo GUI in esecuzione |
+| 🔄 **Riavvio**          | `make tokintel-gui-restart` | Stop + start in un solo comando |
+| ⚙️ **Porta custom**     | `make tokintel-gui-on PORT=8502` | Avvia su una porta specifica |
 
-![TokIntel GUI Home](docs/images/tokintel_gui_home.png)
-
-### 🔧 Configurazione Avanzata
-
-```bash
-# Porta custom (es. 8502)
-make tokintel-gui-on PORT=8502
-
-# Riavvio completo
-make tokintel-gui-restart
-
-# Quick start completo (README + GUI)
-make tokintel-gui-quickstart
-```
-
-### 🚨 Troubleshooting Rapido
-
-| Problema | Soluzione |
-|----------|-----------|
-| **Porta occupata** | `make tokintel-gui-stop` → `make tokintel-gui-on PORT=8502` |
-| **Processo orfano** | `pkill -f "streamlit run"` → `make tokintel-gui-bg` |
-| **Browser non si apre** | Apri manualmente `http://localhost:8501` |
-
----
+<!-- screenshot -->
+<p align="left">
+  <img src="docs/images/tokintel_gui_home.png" alt="TokIntel GUI Home" width="720" onerror="this.src='docs/images/tokintel_gui_home.svg'">
+</p>
 
 ## 🚀 Setup Rapido
 

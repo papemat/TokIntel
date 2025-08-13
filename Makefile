@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log tokintel-gui-quickstart
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log tokintel-gui-quickstart quickstart-badge
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -617,11 +617,14 @@ tokintel-gui-restart: ## Riavvia GUI (stop + bg)
 	@$(MAKE) -s tokintel-gui-bg
 
 tokintel-gui-quickstart: ## Quick start completo (README + GUI)
-	@echo "🚀 TokIntel Quick Start..."
-	@echo "📖 Apro README.md..."
-	@open README.md 2>/dev/null || xdg-open README.md 2>/dev/null || echo "ℹ️  Apri manualmente README.md"
-	@echo "🌐 Avvio GUI TokIntel..."
-	@$(MAKE) -s tokintel-gui-bg
+	@echo "🚀 Opening Quick Start + launching GUI..."
+	@if command -v open >/dev/null 2>&1; then open README.md; \
+	elif command -v xdg-open >/dev/null 2>&1; then xdg-open README.md; \
+	else echo "Apri manualmente README.md"; fi
+	@$(MAKE) tokintel-gui-bg
+
+quickstart-badge:
+	@echo "🪄 Quick Start badge ready at docs/badges/quickstart_ready_glow.svg"
 
 tokintel-validate:
 	@if [ -z "$(IN)" ]; then echo "❌ Specifica IN=path/to/input.json"; exit 2; fi
