@@ -1,3 +1,54 @@
+# TokIntel – Monitor CI/Visual (Matrix 3.10/3.11) – Cursor One‑Shot
+# Aggiorna/crea il workflow con matrix Python, mantiene gate/schedule/path filter,
+# poi esegue un giro locale, committa e pusha su main.
+# Idempotente.
+
+set -e
+
+echo "🔎 Prerequisiti"
+which git  >/dev/null || (echo "❌ git mancante" && exit 1)
+which make >/dev/null || (echo "❌ make mancante" && exit 1)
+python3 --version || (echo "❌ python3 mancante" && exit 1)
+
+echo "📂 Struttura cartelle"
+mkdir -p .github/workflows docs scripts exports
+
+echo "✅ Marker README (se mancano)"
+if ! grep -q "MONITOR_STATUS:START" README.md 2>/dev/null; then
+  cat >> README.md <<'MDAPPEND'
+
+## 📈 Ultimi esiti monitor
+
+> Stato automatico del workflow **Monitor CI/Visual** (cron + manuale).  
+> Fonte: `docs/monitor_history.json` (aggiornato via GitHub Actions).
+
+<!-- MONITOR_STATUS:START -->
+_(in attesa del primo aggiornamento automatico)_
+<!-- MONITOR_STATUS:END -->
+MDAPPEND
+fi
+
+echo "✅ JSON stato (se mancanti)"
+[ -f docs/status.json ] || cat > docs/status.json <<'JSON'
+{
+  "docs_ready": "unknown",
+  "updated_at": null,
+  "monitor_last_run": null,
+  "monitor_result": null,
+  "monitor_targets": null,
+  "monitor_run_url": null
+}
+JSON
+
+[ -f docs/monitor_history.json ] || cat > docs/monitor_history.json <<'JSON'
+{
+  "runs": []
+}
+JSON
+
+WF=".github/workflows/monitor-ci-hourly.yml"
+echo "🛠️  Scrivo workflow matrix → $WF"
+cat > "$WF" <<'YAML'
 name: Monitor CI/Visual (Hourly, Path‑Filtered + Log + Matrix)
 
 on:
@@ -168,3 +219,27 @@ jobs:
             git commit -m "docs(monitor): aggiorna status, history e README [skip ci]"
             git push
           fi
+YAML
+
+echo "🪝 Hook pre-commit (docs-check)"
+mkdir -p .git/hooks
+cat > .git/hooks/pre-commit <<'HOOK'
+#!/usr/bin/env sh
+set -e
+echo "🔎 pre-commit: make docs-check"
+make docs-check
+HOOK
+chmod +x .git/hooks/pre-commit
+
+echo "🚀 Giro locale (best effort)"
+make docs-check || true
+make ci-visual-refresh || true
+make docs-ready || true
+make e2e-smoke || true
+
+echo "💾 Commit & push"
+git add -A
+git commit -m "ci(monitor): overwrite Monitor workflow with Python matrix + keep gate/schedule" || echo "ℹ️ Nulla da committare"
+git push || echo "ℹ️ Push non riuscito (controlla remote/permessi)"
+
+echo "✅ Fatto. Apri GitHub → Actions → 'Monitor CI/Visual (Hourly, Path‑Filtered + Log + Matrix)' → Run workflow."
