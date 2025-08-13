@@ -1,0 +1,292 @@
+# TokIntel – Monitor Ecosystem Bootstrap (Cursor One‑Shot)
+# Scopo: verificare/creare file chiave (README markers, JSON di stato, workflow),
+# installare hook, eseguire i target Makefile e pushare le modifiche.
+# Compatibile macOS/Linux. (Su Windows usa Git Bash.)
+
+## 0) prerequisiti
+which git || (echo "❌ git mancante" && exit 1)
+which make || (echo "❌ make mancante" && exit 1)
+python -V || (echo "❌ python mancante" && exit 1)
+
+## 1) variabili base
+REPO_URL="$(git config --get remote.origin.url || echo '')"
+[ -z "$REPO_URL" ] && echo "⚠️ Nessun remote configurato. Esegui: git remote add origin <url>" || echo "🔗 Remote: $REPO_URL"
+
+## 2) crea cartelle necessarie
+mkdir -p .github/workflows
+mkdir -p docs
+mkdir -p scripts
+mkdir -p exports
+
+## 3) assicurati che README abbia i marker dei log
+if ! grep -q "MONITOR_STATUS:START" README.md 2>/dev/null; then
+  echo "➕ Inserisco sezione 'Ultimi esiti monitor' nel README"
+  cat >> README.md <<'MDAPPEND'
+
+## 📈 Ultimi esiti monitor
+
+> Stato automatico del workflow **Monitor CI/Visual** (cron + manuale).  
+> Fonte: `docs/monitor_history.json` (aggiornato via GitHub Actions).
+
+<!-- MONITOR_STATUS:START -->
+_(in attesa del primo aggiornamento automatico)_
+<!-- MONITOR_STATUS:END -->
+MDAPPEND
+else
+  echo "✅ README contiene già i marker monitor"
+fi
+
+## 4) file di stato iniziali se mancanti
+if [ ! -f docs/status.json ]; then
+  echo "➕ Crea docs/status.json"
+  cat > docs/status.json <<'JSON'
+{
+  "docs_ready": "unknown",
+  "updated_at": null,
+  "monitor_last_run": null,
+  "monitor_result": null,
+  "monitor_targets": null,
+  "monitor_run_url": null
+}
+JSON
+fi
+
+if [ ! -f docs/monitor_history.json ]; then
+  echo "➕ Crea docs/monitor_history.json"
+  cat > docs/monitor_history.json <<'JSON'
+{
+  "runs": []
+}
+JSON
+fi
+
+## 5) workflow monitor (path‑filtered + cron + log README)
+WF=.github/workflows/monitor-ci-hourly.yml
+if [ ! -f "$WF" ]; then
+  echo "➕ Creo $WF"
+  cat > "$WF" <<'YAML'
+name: Monitor CI/Visual (Hourly, Path‑Filtered + Log)
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'Makefile'
+      - 'docs/**'
+      - 'scripts/**'
+      - 'exports/**'
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: "Target Makefile (spazio-separati)"
+        default: "self-check"
+        required: true
+      python-version:
+        description: "Versione Python"
+        default: "3.11"
+        required: true
+  schedule:
+    - cron: "7 * * * *"
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: monitor-ci-visual
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: Path change gate (last 90m for schedule)
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.gate.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: gate
+        run: |
+          echo "skip=false" >> $GITHUB_OUTPUT
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            CHANGED=$(
+              git log --since="90 minutes ago" --name-only --pretty=format: \
+              | grep -E '^(Makefile|docs/|scripts/|exports/)' | wc -l || true
+            )
+            if [ "$CHANGED" -eq 0 ]; then
+              echo "skip=true" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+  monitor:
+    name: Monitor CI/Visual
+    needs: gate
+    if: needs.gate.outputs.skip == 'false' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      TARGETS: ${{ github.event.inputs.targets || 'self-check' }}
+      PYTHON_VERSION: ${{ github.event.inputs.python-version || '3.11' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install minimal deps (se presenti)
+        run: |
+          [ -f requirements.txt ] && pip install -r requirements.txt || true
+
+      - name: Make targets (self-check di default)
+        id: run_targets
+        run: |
+          set -e
+          echo "👉 Eseguo: $TARGETS"
+          START_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          for t in $TARGETS; do
+            echo "=== make $t ==="
+            make $t
+          done
+          END_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "start=${START_TS}" >> $GITHUB_OUTPUT
+          echo "end=${END_TS}" >> $GITHUB_OUTPUT
+
+      - name: Upload artifacts (se esistono)
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitor-ci-visual-${{ github.run_id }}
+          path: |
+            exports/last_export.json
+            docs/status.json
+            logs/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Aggiorna status.json + monitor_history.json + README
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os, re, datetime, pathlib
+          run_url = os.environ.get("RUN_URL")
+          event_name = os.environ.get("GITHUB_EVENT_NAME")
+          targets = os.environ.get("TARGETS","self-check")
+          start = os.environ.get("steps.run_targets.outputs.start","")
+          end   = os.environ.get("steps.run_targets.outputs.end","")
+          conclusion = os.environ.get("JOB_STATUS","success")
+          now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+          status_path = pathlib.Path("docs/status.json")
+          hist_path   = pathlib.Path("docs/monitor_history.json")
+          readme_path = pathlib.Path("README.md")
+          status = {"docs_ready":"unknown","updated_at":None,"monitor_last_run":None,"monitor_result":None,"monitor_targets":None,"monitor_run_url":None}
+          if status_path.exists():
+            try: status = json.loads(status_path.read_text(encoding="utf-8"))
+            except: pass
+          status["monitor_last_run"]=now
+          status["monitor_result"]=conclusion
+          status["monitor_targets"]=targets
+          status["monitor_run_url"]=run_url
+          status_path.write_text(json.dumps(status,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
+          hist={"runs":[]}
+          if hist_path.exists():
+            try: hist = json.loads(hist_path.read_text(encoding="utf-8"))
+            except: pass
+          entry={"timestamp":now,"result":conclusion,"targets":targets,"event":event_name,"run_url":run_url,"run_id":os.environ.get("GITHUB_RUN_ID")}
+          hist["runs"]=([entry]+hist.get("runs",[]))[:20]
+          hist_path.write_text(json.dumps(hist,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
+          def icon(r): return "🟢" if r.lower()=="success" else ("🟡" if r.lower()=="neutral" else "🔴")
+          rows=[]
+          for r in hist["runs"][:5]:
+            ts=r["timestamp"].replace("T"," ").replace("Z"," UTC")
+            rows.append(f"| {ts} | {icon(r['result'])} {r['result']} | `{r['targets']}` | [run]({r['run_url']}) |")
+          block="\n".join(["","| Timestamp | Esito | Targets | Dettagli |","|---|---|---|---|",*rows,""])
+          start_marker="<!-- MONITOR_STATUS:START -->"; end_marker="<!-- MONITOR_STATUS:END -->"
+          readme = readme_path.read_text(encoding="utf-8")
+          pat=re.compile(re.escape(start_marker)+".*?"+re.escape(end_marker),re.S)
+          new=f"{start_marker}\n{block}\n{end_marker}"
+          if pat.search(readme): readme=pat.sub(new,readme)
+          else: readme += "\n\n"+new+"\n"
+          readme_path.write_text(readme,encoding="utf-8")
+          PY
+        env:
+          JOB_STATUS: ${{ job.status }}
+
+      - name: Commit e push aggiornamenti
+        if: always()
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/status.json docs/monitor_history.json README.md || true
+          if git diff --cached --quiet; then
+            echo "ℹ️  Nessuna modifica da committare."
+          else
+            git commit -m "docs(monitor): aggiorna status, history e README [skip ci]"
+            git push
+          fi
+YAML
+else
+  echo "ℹ️ Workflow monitor già presente"
+fi
+
+## 6) target opzionale per rendering locale nel Makefile
+if ! grep -q "^monitor-log:" Makefile 2>/dev/null; then
+  echo "➕ Aggiungo target monitor-log al Makefile"
+  cat >> Makefile <<'MAKEAPPEND'
+
+.PHONY: monitor-log
+monitor-log:
+	@echo "📝 Aggiorno blocco 'Ultimi esiti monitor' nel README da monitor_history.json…"
+	@python - <<'PY'
+import json, re, pathlib
+hist_path = pathlib.Path("docs/monitor_history.json")
+readme_path = pathlib.Path("README.md")
+if not hist_path.exists():
+    raise SystemExit("❌ docs/monitor_history.json mancante")
+hist = json.loads(hist_path.read_text(encoding="utf-8"))
+def icon(r): return "🟢" if r.lower()=="success" else ("🟡" if r.lower()=="neutral" else "🔴")
+rows=[]
+for r in hist.get("runs", [])[:5]:
+    ts=r["timestamp"].replace("T"," ").replace("Z"," UTC")
+    rows.append(f"| {ts} | {icon(r['result'])} {r['result']} | `{r['targets']}` | {r.get('run_url','')} |")
+block="\n".join(["","| Timestamp | Esito | Targets | Dettagli |","|---|---|---|---|",*rows,""])
+start="<!-- MONITOR_STATUS:START -->"; end="<!-- MONITOR_STATUS:END -->"
+readme = readme_path.read_text(encoding="utf-8")
+pat = re.compile(re.escape(start)+".*?"+re.escape(end), re.S)
+new = f"{start}\n{block}\n{end}"
+if pat.search(readme): readme = pat.sub(new, readme)
+else: readme += "\n\n"+new+"\n"
+readme_path.write_text(readme, encoding="utf-8")
+print("✅ README aggiornato")
+PY
+MAKEAPPEND
+else
+  echo "ℹ️ Target monitor-log già presente"
+fi
+
+## 7) hook e giro completo locale
+echo "🪝 Installo/aggiorno hook pre-commit"
+mkdir -p .git/hooks
+cat > .git/hooks/pre-commit <<'HOOK'
+#!/usr/bin/env sh
+set -e
+echo "🔎 pre-commit: make docs-check"
+make docs-check
+HOOK
+chmod +x .git/hooks/pre-commit
+
+echo "🚀 Giro completo locale (best effort)"
+make docs-check || true
+make ci-visual-refresh || true
+make docs-ready || true
+make e2e-smoke || true
+
+## 8) commit & push
+git add -A
+git commit -m "chore(cursor): bootstrap Monitor CI/Visual (workflow+status+markers+hooks)" || echo "ℹ️ Nulla da committare"
+git push || echo "ℹ️ Push non riuscito (controlla remote/permessi)"
+
+echo "✅ Bootstrap completato. Apri GitHub → Actions e lancia manualmente 'Monitor CI/Visual' per popolare il README."
