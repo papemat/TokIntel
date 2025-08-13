@@ -75,6 +75,86 @@ Questa sezione mostra lo stato in tempo reale dei workflow CI/CD per TokIntel e 
 | 🔄 **Riavvio**          | `make tokintel-gui-restart` | Stop + start in un solo comando |
 | ⚙️ **Porta custom**     | `make tokintel-gui-on PORT=8502` | Avvia su una porta specifica |
 
+<p align="left">
+  <img src="docs/images/tokintel_gui_home.png" alt="TokIntel GUI Home" width="720" onerror="this.src='docs/images/tokintel_gui_home.svg'">
+</p>
+
+
+[![Quick Start Ready](docs/badges/quickstart_ready_glow.svg)](#)
+
+| Azione                  | Comando | Descrizione |
+|-------------------------|---------|-------------|
+| ▶️ **Avvio rapido**     | `make tokintel-gui-bg` | Avvia in background e apre il browser |
+| 📡 **Monitoraggio log** | `make tokintel-gui-log` | Mostra log in tempo reale |
+| 🩺 **Health check**     | `make tokintel-gui-health` | Verifica se la GUI è attiva (HTTP 200) |
+| ⏹ **Stop pulito**       | `make tokintel-gui-stop` | Ferma il processo GUI in esecuzione |
+| 🔄 **Riavvio**          | `make tokintel-gui-restart` | Stop + start in un solo comando |
+| ⚙️ **Porta custom**     | `make tokintel-gui-on PORT=8502` | Avvia su una porta specifica |
+
+<p align="left">
+  <img src="docs/images/tokintel_gui_home.png" alt="TokIntel GUI Home" width="720" onerror="this.src='docs/images/tokintel_gui_home.svg'">
+</p>
+
+
+[![Quick Start Ready](docs/badges/quickstart_ready_glow.svg)](#)
+
+| Azione                  | Comando | Descrizione |
+|-------------------------|---------|-------------|
+| ▶️ **Avvio rapido**     | `make tokintel-gui-bg` | Avvia in background e apre il browser |
+| 📡 **Monitoraggio log** | `make tokintel-gui-log` | Mostra log in tempo reale |
+| 🩺 **Health check**     | `make tokintel-gui-health` | Verifica se la GUI è attiva (HTTP 200) |
+| ⏹ **Stop pulito**       | `make tokintel-gui-stop` | Ferma il processo GUI in esecuzione |
+| 🔄 **Riavvio**          | `make tokintel-gui-restart` | Stop + start in un solo comando |
+| ⚙️ **Porta custom**     | `make tokintel-gui-on PORT=8502` | Avvia su una porta specifica |
+
+<p align="left">
+  <img src="docs/images/tokintel_gui_home.png" alt="TokIntel GUI Home" width="720" onerror="this.src='docs/images/tokintel_gui_home.svg'">
+</p>
+
+
+[![Quick Start Ready](docs/badges/quickstart_ready_glow.svg)](#)
+
+| Azione                  | Comando | Descrizione |
+|-------------------------|---------|-------------|
+| ▶️ **Avvio rapido**     | `make tokintel-gui-bg` | Avvia in background e apre il browser |
+| 📡 **Monitoraggio log** | `make tokintel-gui-log` | Mostra log in tempo reale |
+| 🩺 **Health check**     | `make tokintel-gui-health` | Verifica se la GUI è attiva (HTTP 200) |
+| ⏹ **Stop pulito**       | `make tokintel-gui-stop` | Ferma il processo GUI in esecuzione |
+| 🔄 **Riavvio**          | `make tokintel-gui-restart` | Stop + start in un solo comando |
+| ⚙️ **Porta custom**     | `make tokintel-gui-on PORT=8502` | Avvia su una porta specifica |
+
+<p align="left">
+  <img src="docs/images/tokintel_gui_home.png" alt="TokIntel GUI Home" width="720" onerror="this.src='docs/images/tokintel_gui_home.svg'">
+</p>
+
+
+[![Quick Start Ready](docs/badges/quickstart_ready_glow.svg)](#)
+
+| Azione                  | Comando | Descrizione |
+|-------------------------|---------|-------------|
+| ▶️ **Avvio rapido**     | `make tokintel-gui-bg` | Avvia in background e apre il browser |
+| 📡 **Monitoraggio log** | `make tokintel-gui-log` | Mostra log in tempo reale |
+| 🩺 **Health check**     | `make tokintel-gui-health` | Verifica se la GUI è attiva (HTTP 200) |
+| ⏹ **Stop pulito**       | `make tokintel-gui-stop` | Ferma il processo GUI in esecuzione |
+| 🔄 **Riavvio**          | `make tokintel-gui-restart` | Stop + start in un solo comando |
+| ⚙️ **Porta custom**     | `make tokintel-gui-on PORT=8502` | Avvia su una porta specifica |
+
+<p align="left">
+  <img src="docs/images/tokintel_gui_home.png" alt="TokIntel GUI Home" width="720" onerror="this.src='docs/images/tokintel_gui_home.svg'">
+</p>
+
+
+[![Quick Start Ready](docs/badges/quickstart_ready_glow.svg)](#)
+
+| Azione                  | Comando | Descrizione |
+|-------------------------|---------|-------------|
+| ▶️ **Avvio rapido**     | `make tokintel-gui-bg` | Avvia in background e apre il browser |
+| 📡 **Monitoraggio log** | `make tokintel-gui-log` | Mostra log in tempo reale |
+| 🩺 **Health check**     | `make tokintel-gui-health` | Verifica se la GUI è attiva (HTTP 200) |
+| ⏹ **Stop pulito**       | `make tokintel-gui-stop` | Ferma il processo GUI in esecuzione |
+| 🔄 **Riavvio**          | `make tokintel-gui-restart` | Stop + start in un solo comando |
+| ⚙️ **Porta custom**     | `make tokintel-gui-on PORT=8502` | Avvia su una porta specifica |
+
 <!-- screenshot -->
 <p align="left">
   <img src="docs/images/tokintel_gui_home.png" alt="TokIntel GUI Home" width="720" onerror="this.src='docs/images/tokintel_gui_home.svg'">

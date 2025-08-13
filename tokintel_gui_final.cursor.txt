@@ -1,0 +1,228 @@
+# TokIntel – GUI Final Bootstrap (Cursor One‑Shot)
+# Applica tutte le migliorie GUI (health, bg, stop, restart, log, porta custom, env),
+# aggiorna Makefile in modo idempotente, crea .env.example, committa e pusha.
+
+set -e
+
+echo "🔎 Prerequisiti"
+which git  >/dev/null || (echo "❌ git mancante" && exit 1)
+which make >/dev/null || (echo "❌ make mancante" && exit 1)
+python3 --version >/dev/null || (echo "❌ python3 mancante" && exit 1)
+
+[ -f Makefile ] || touch Makefile
+
+STAMP="$(date -u +%Y%m%d_%H%M%S)"
+cp Makefile "Makefile.bak.$STAMP"
+echo "🗂️  Backup Makefile: Makefile.bak.$STAMP"
+
+# -----------------------------------------------
+# Aggiornamento Makefile (idempotente)
+# -----------------------------------------------
+python3 - <<'PY'
+import re, pathlib
+
+mf = pathlib.Path("Makefile")
+txt = mf.read_text(encoding="utf-8")
+
+def ensure_var(txt, key, default):
+    pat = re.compile(rf"^\s*{re.escape(key)}\s*\?=\s*.+$", re.M)
+    return txt if pat.search(txt) else (txt + f"\n{key} ?= {default}\n")
+
+# Variabili base (non sovrascrive se già definite)
+txt = ensure_var(txt, "TOK_GUI_ENTRY", "dash/app.py")
+txt = ensure_var(txt, "TOK_GUI_URL", "http://localhost:8501")
+txt = ensure_var(txt, "TOK_GUI_PID", ".tokintel_gui.pid")
+txt = ensure_var(txt, "TOK_GUI_LOG", "gui.log")
+txt = ensure_var(txt, "TOK_HEALTH_MAX_RETRIES", "40")
+txt = ensure_var(txt, "TOK_HEALTH_SLEEP", "1")
+
+def upsert_block(name, block):
+    # sostituisce un target esistente; se non c'è, lo appende in coda
+    global txt
+    pat = re.compile(rf'^\s*{re.escape(name)}\s*:.*?(?=^\S|\Z)', re.S | re.M)
+    if pat.search(txt):
+        txt = pat.sub(block, txt)
+    else:
+        if not txt.endswith("\n"):
+            txt += "\n"
+        txt += "\n" + block
+
+# Help generator by comments "##" (se già ne usi uno, non lo tocchiamo)
+# Aggiungiamo solo commenti "##" sui target nuovi.
+
+# --- tokintel-gui (foreground) ---
+upsert_block("tokintel-gui", r'''
+tokintel-gui:  ## Avvia GUI (foreground) e apre il browser
+	@echo "🌐 Avvio GUI TokIntel (foreground)…"
+	@( \
+	  python3 - <<'PYOPEN' & \
+	  import time, webbrowser; time.sleep(2); webbrowser.open("$(TOK_GUI_URL)"); \
+	  PYOPEN \
+	) >/dev/null 2>&1 || true
+	streamlit run "$(TOK_GUI_ENTRY)"
+'''.lstrip("\n"))
+
+# --- tokintel-gui-health ---
+if not re.search(r'^\s*tokintel-gui-health\s*:', txt, re.M):
+    txt += "\n# --- TokIntel GUI Health -----------------------------------------------------\n"
+txt_pat = re.compile(r'^\s*tokintel-gui-health\s*:.*?(?=^\S|\Z)', re.S | re.M)
+txt = txt_pat.sub(r'''
+tokintel-gui-health: ## Verifica readiness della GUI (HTTP 200)
+	@echo "🩺 Health check GUI su $(TOK_GUI_URL)…"
+	@python3 - <<'PYH'
+import os, sys, time, urllib.request, ssl
+url = os.environ.get("TOK_GUI_URL", "http://localhost:8501")
+retries = int(os.environ.get("TOK_HEALTH_MAX_RETRIES","40"))
+sleep_s = float(os.environ.get("TOK_HEALTH_SLEEP","1"))
+ctx = ssl.create_default_context()
+ok=False
+for i in range(1, retries+1):
+    try:
+        with urllib.request.urlopen(url, context=ctx, timeout=2) as r:
+            code = getattr(r, "status", 200)
+            if 200 <= code < 400:
+                print(f"✅ GUI pronta (HTTP {code}) dopo {i} tentativi")
+                ok=True
+                break
+    except Exception:
+        pass
+    print(f"… tentativo {i}/{retries} non ancora disponibile")
+    time.sleep(sleep_s)
+if not ok:
+    print("❌ GUI non raggiungibile nei tempi previsti", file=sys.stderr)
+    sys.exit(2)
+PYH
+'''.lstrip("\n"), txt)
+
+# --- tokintel-gui-bg ---
+upsert_block("tokintel-gui-bg", r'''
+tokintel-gui-bg:  ## Avvia GUI in background (con health check) e apre browser
+	@echo "🚀 Avvio GUI TokIntel in background…"
+	nohup streamlit run "$(TOK_GUI_ENTRY)" > "$(TOK_GUI_LOG)" 2>&1 & echo $$! > "$(TOK_GUI_PID)"
+	@echo "🆔 PID: $$(cat $(TOK_GUI_PID) 2>/dev/null || echo '?')"
+	@$(MAKE) -s tokintel-gui-health TOK_HEALTH_MAX_RETRIES=60 TOK_HEALTH_SLEEP=1
+	@python3 - <<'PYB' >/dev/null 2>&1 || true
+import time, webbrowser, os
+time.sleep(0.5)
+webbrowser.open(os.environ.get("TOK_GUI_URL","http://localhost:8501"))
+PYB
+	@echo "✅ Dashboard pronta su $(TOK_GUI_URL)"
+	@echo "📄 Log: $(TOK_GUI_LOG)"
+'''.lstrip("\n"))
+
+# --- tokintel-gui-on (porta custom) ---
+upsert_block("tokintel-gui-on", r'''
+tokintel-gui-on:  ## Avvia GUI su porta custom: make tokintel-gui-on PORT=8502
+	@if [ -z "$(PORT)" ]; then echo "❌ Specifica PORT=numero"; exit 2; fi
+	@url="http://localhost:$(PORT)"; echo "🔌 Avvio GUI su $$url"
+	nohup streamlit run "$(TOK_GUI_ENTRY)" --server.port "$(PORT)" > "$(TOK_GUI_LOG)" 2>&1 & echo $$! > "$(TOK_GUI_PID)"
+	@TOK_GUI_URL="$$url" $(MAKE) -s tokintel-gui-health TOK_HEALTH_MAX_RETRIES=60 TOK_HEALTH_SLEEP=1
+	@python3 - <<'PYC' >/dev/null 2>&1 || true
+import time, webbrowser, os
+time.sleep(0.5)
+webbrowser.open(os.environ.get("TOK_GUI_URL","http://localhost:8501"))
+PYC
+	@echo "✅ Dashboard pronta su $$url"
+	@echo "📄 Log: $(TOK_GUI_LOG)"
+'''.lstrip("\n"))
+
+# --- tokintel-gui-stop ---
+upsert_block("tokintel-gui-stop", r'''
+tokintel-gui-stop:  ## Ferma GUI in background (PID file + fallback pgrep)
+	@echo "⛔ Arresto GUI TokIntel…"
+	@if [ -f "$(TOK_GUI_PID)" ]; then \
+	  PID=$$(cat "$(TOK_GUI_PID)"); \
+	  if kill $$PID >/dev/null 2>&1; then \
+	    echo "✅ Terminato PID $$PID"; \
+	  fi; \
+	  rm -f "$(TOK_GUI_PID)"; \
+	fi
+	@pgrep -f "streamlit run $(TOK_GUI_ENTRY)" >/dev/null 2>&1 && \
+	  pkill -f "streamlit run $(TOK_GUI_ENTRY)" && echo "✅ Terminati processi residuali" || \
+	  echo "ℹ️  Nessun processo residuo"
+'''.lstrip("\n"))
+
+# --- tokintel-gui-restart ---
+upsert_block("tokintel-gui-restart", r'''
+tokintel-gui-restart:  ## Riavvia GUI in background (stop + bg)
+	@$(MAKE) -s tokintel-gui-stop
+	@sleep 1
+	@$(MAKE) -s tokintel-gui-bg
+'''.lstrip("\n"))
+
+# --- tokintel-gui-log ---
+upsert_block("tokintel-gui-log", r'''
+tokintel-gui-log:  ## Log live della GUI (tail -f)
+	@echo "📜 Log live (Ctrl+C per uscire)…"
+	@touch "$(TOK_GUI_LOG)"
+	@tail -f "$(TOK_GUI_LOG)"
+'''.lstrip("\n"))
+
+# PHONY (aggiungi senza duplicare)
+for ph in ["tokintel-gui","tokintel-gui-bg","tokintel-gui-stop","tokintel-gui-restart","tokintel-gui-log","tokintel-gui-health","tokintel-gui-on","tokintel-gui-env"]:
+    if not re.search(rf'^\s*\.PHONY:.*\b{ph}\b', txt, re.M):
+        # cerca una riga .PHONY: esistente, oppure aggiungi
+        m = re.search(r'^\s*\.PHONY:.*$', txt, re.M)
+        if m:
+            line = m.group(0)
+            if ph not in line.split():
+                txt = txt.replace(line, line + f" {ph}")
+        else:
+            txt += f"\n.PHONY: {ph}\n"
+
+# --- tokintel-gui-env (carica .env e avvia GUI bg + health + browser) ---
+upsert_block("tokintel-gui-env", r'''
+tokintel-gui-env:  ## Avvia GUI in background caricando variabili da .env (usa dotenv-run se presente)
+	@envfile=".env"; [ -n "$(ENV)" ] && envfile="$(ENV)"; \
+	echo "🧩 Carico variabili da $$envfile (se esiste)"; \
+	if [ -f "$$envfile" ]; then set -a; . "$$envfile"; set +a; fi; \
+	nohup streamlit run "$(TOK_GUI_ENTRY)" > "$(TOK_GUI_LOG)" 2>&1 & echo $$! > "$(TOK_GUI_PID)"
+	@$(MAKE) -s tokintel-gui-health TOK_HEALTH_MAX_RETRIES=60 TOK_HEALTH_SLEEP=1
+	@python3 - <<'PYENV' >/dev/null 2>&1 || true
+import time, webbrowser, os
+time.sleep(0.5)
+webbrowser.open(os.environ.get("TOK_GUI_URL","http://localhost:8501"))
+PYENV
+	@echo "✅ Dashboard pronta su $(TOK_GUI_URL)"
+	@echo "📄 Log: $(TOK_GUI_LOG)"
+'''.lstrip("\n"))
+
+mf.write_text(txt, encoding="utf-8")
+print("✅ Makefile aggiornato.")
+PY
+
+# -----------------------------------------------
+# .env example (non sovrascrive se presente)
+# -----------------------------------------------
+if [ ! -f .env ] && [ ! -f .env.example ]; then
+  cat > .env.example <<'ENV'
+# TokIntel GUI environment sample
+# Copia questo file in ".env" e personalizza se necessario.
+
+# STREAMLIT_SERVER_HEADLESS=false
+# STREAMLIT_SERVER_PORT=8501
+# TOK_GUI_URL=http://localhost:8501
+ENV
+  echo "🧩 Creato .env.example"
+else
+  echo "ℹ️  .env o .env.example già presente"
+fi
+
+# -----------------------------------------------
+# Test sintattico (best effort) + Commit & push
+# -----------------------------------------------
+(make -n tokintel-gui-bg    >/dev/null 2>&1 || true)
+(make -n tokintel-gui-on PORT=8502 >/dev/null 2>&1 || true)
+(make -n tokintel-gui-health >/dev/null 2>&1 || true)
+(make -n tokintel-gui-env    >/dev/null 2>&1 || true)
+
+git add Makefile .env.example || true
+git commit -m "ops(gui): health check + bg startup with browser + on:PORT + stop/restart/log + env support" || echo "ℹ️ Nulla da committare"
+git push || echo "ℹ️ Push non riuscito (controlla remote/permessi)"
+
+echo "✅ Completato. Comandi utili:"
+echo "   make tokintel-gui-bg                      # avvio con health + browser"
+echo "   make tokintel-gui-on PORT=8502            # avvio su porta custom"
+echo "   make tokintel-gui-health                  # health check manuale"
+echo "   make tokintel-gui-env ENV=.env.local      # avvio caricando variabili da file .env"
+echo "   make tokintel-gui-stop | tokintel-gui-restart | tokintel-gui-log"
