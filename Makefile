@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log tokintel-gui-quickstart
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -589,21 +589,39 @@ tokintel-run:
 		echo "❌ Scelta non valida"; exit 2; \
 	fi
 
-tokintel-gui:
-	@echo "🌐 Avvio GUI TokIntel…"
-	@python3 -c "import time, webbrowser; time.sleep(2); webbrowser.open('$(TOK_GUI_URL)')" >/dev/null 2>&1 || true
-	@streamlit run dash/app.py --server.port 8501 --server.headless false
+tokintel-gui: ## Avvia GUI TokIntel (foreground)
+	.venv/bin/streamlit run dash/app.py
 
-tokintel-gui-bg: ## Avvia GUI in background (non blocca terminale)
-	@echo "🌐 Avvio dashboard TokIntel in background..."
-	@nohup streamlit run dash/app.py --server.port 8501 --server.headless false > gui.log 2>&1 & disown || true
-	@echo "✅ Dashboard avviata! Apri: http://localhost:8501"
-	@echo "📄 Log: gui.log"
+tokintel-gui-bg: ## Avvia GUI TokIntel in background
+	.venv/bin/streamlit run dash/app.py --server.headless true &
+	@echo "✅ GUI avviata in background su http://localhost:8501"
 
-tokintel-gui-stop: ## Ferma dashboard in background
-	@echo "🛑 Fermo dashboard TokIntel..."
-	@pkill -f "streamlit run dash/app.py" || true
-	@echo "✅ Dashboard fermata"
+tokintel-gui-stop: ## Ferma GUI TokIntel
+	@pkill -f "streamlit run dash/app.py" || echo "Nessun processo GUI trovato"
+
+tokintel-gui-log: ## Mostra log GUI
+	@tail -f gui.log 2>/dev/null || echo "File log non trovato"
+
+tokintel-gui-health: ## Verifica readiness della GUI
+	@echo "🩺 Health check GUI su http://localhost:8501…"
+	@python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8501', timeout=2); print('✅ GUI pronta')" 2>/dev/null || echo "❌ GUI non raggiungibile"
+
+tokintel-gui-on: ## Avvia GUI su porta custom: make tokintel-gui-on PORT=8502
+	@if [ -z "$(PORT)" ]; then echo "❌ Specifica PORT=numero"; exit 2; fi
+	.venv/bin/streamlit run dash/app.py --server.port "$(PORT)" --server.headless true &
+	@echo "✅ GUI avviata su porta $(PORT): http://localhost:$(PORT)"
+
+tokintel-gui-restart: ## Riavvia GUI (stop + bg)
+	@$(MAKE) -s tokintel-gui-stop
+	@sleep 1
+	@$(MAKE) -s tokintel-gui-bg
+
+tokintel-gui-quickstart: ## Quick start completo (README + GUI)
+	@echo "🚀 TokIntel Quick Start..."
+	@echo "📖 Apro README.md..."
+	@open README.md 2>/dev/null || xdg-open README.md 2>/dev/null || echo "ℹ️  Apri manualmente README.md"
+	@echo "🌐 Avvio GUI TokIntel..."
+	@$(MAKE) -s tokintel-gui-bg
 
 tokintel-validate:
 	@if [ -z "$(IN)" ]; then echo "❌ Specifica IN=path/to/input.json"; exit 2; fi
@@ -617,3 +635,4 @@ tokintel-batch:
 	echo "📦 Batch TokIntel → IN='$(IN)'  OUT='exports/$$out.json'"; \
 	python3 analyzer/tiktok_collections.py --source "$(IN)" --export "exports/$$out.json"; \
 	echo "✅ Analisi completata → exports/$$out.json"
+

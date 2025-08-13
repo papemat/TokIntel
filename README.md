@@ -61,6 +61,42 @@ Questa sezione mostra lo stato in tempo reale dei workflow CI/CD per TokIntel e 
 > 2. Aprire il run più recente
 > 3. Scaricare gli artifact generati
 
+## ⚡ Quick Start – TokIntel GUI
+
+> **Avvia TokIntel in 30 secondi** con la GUI interattiva
+
+| Comando | Descrizione | Status |
+|---------|-------------|--------|
+| `make tokintel-gui-bg` | 🚀 **Avvia GUI** (background + readiness + browser) | ![GUI Ready](https://img.shields.io/badge/GUI-Ready-brightgreen) |
+| `make tokintel-gui-log` | 📜 **Log live** (Ctrl+C per uscire) | ![Log Active](https://img.shields.io/badge/Log-Active-blue) |
+| `make tokintel-gui-health` | 🩺 **Health check** (HTTP 200 quando pronta) | ![Health OK](https://img.shields.io/badge/Health-OK-success) |
+| `make tokintel-gui-stop` | ⛔ **Spegni GUI** (PID cleanup) | ![Stop Clean](https://img.shields.io/badge/Stop-Clean-orange) |
+
+![TokIntel GUI Home](docs/images/tokintel_gui_home.png)
+
+### 🔧 Configurazione Avanzata
+
+```bash
+# Porta custom (es. 8502)
+make tokintel-gui-on PORT=8502
+
+# Riavvio completo
+make tokintel-gui-restart
+
+# Quick start completo (README + GUI)
+make tokintel-gui-quickstart
+```
+
+### 🚨 Troubleshooting Rapido
+
+| Problema | Soluzione |
+|----------|-----------|
+| **Porta occupata** | `make tokintel-gui-stop` → `make tokintel-gui-on PORT=8502` |
+| **Processo orfano** | `pkill -f "streamlit run"` → `make tokintel-gui-bg` |
+| **Browser non si apre** | Apri manualmente `http://localhost:8501` |
+
+---
+
 ## 🚀 Setup Rapido
 
 ```bash
