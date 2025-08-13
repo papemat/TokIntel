@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-check export-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview docs-ready docs-fail badges-glow-all
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -418,6 +418,28 @@ ci-badges-preview: ## Genera anteprima badge CI con effetto glow
 	@echo "✨ Generazione anteprima badge CI con glow..."
 	$(PY) scripts/generate_ci_badges_preview.py
 	@echo "✅ Anteprima badge CI generata: docs/images/ci-badges-preview.png"
+
+.PHONY: docs-ready
+docs-ready: ## Imposta status Docs Ready a passing e aggiorna badge
+	@echo "📚 Impostazione Docs Ready a passing..."
+	$(PY) scripts/update_docs_status.py passing
+	$(PY) scripts/update_docs_badge.py
+	$(PY) scripts/generate_docs_ready_glow.py
+	@echo "✅ Docs Ready impostato a passing"
+
+.PHONY: docs-fail
+docs-fail: ## Imposta status Docs Ready a failing e aggiorna badge
+	@echo "📚 Impostazione Docs Ready a failing..."
+	$(PY) scripts/update_docs_status.py failing
+	$(PY) scripts/update_docs_badge.py
+	@echo "✅ Docs Ready impostato a failing"
+
+.PHONY: badges-glow-all
+badges-glow-all: ## Genera tutti i glow badge (CI + Docs Ready)
+	@echo "✨ Generazione di tutti i glow badge..."
+	$(PY) scripts/generate_ci_badges_preview.py
+	$(PY) scripts/generate_docs_ready_glow.py
+	@echo "✅ Tutti i glow badge generati"
 
 lint: ## Linting con ruff
 	pip install ruff || true

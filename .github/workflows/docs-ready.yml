@@ -1,0 +1,58 @@
+name: Docs Ready Status
+
+on:
+  schedule:
+    # Esegui ogni giorno alle 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    # Permette esecuzione manuale
+    inputs:
+      status:
+        description: 'Status to set (passing/failing)'
+        required: false
+        default: 'passing'
+        type: choice
+        options:
+          - passing
+          - failing
+
+jobs:
+  update-docs-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Update docs status
+        run: |
+          python scripts/update_docs_status.py ${{ github.event.inputs.status || 'passing' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update docs badge
+        run: |
+          python scripts/update_docs_badge.py
+
+      - name: Generate docs ready glow
+        run: |
+          python scripts/generate_docs_ready_glow.py
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/status.json README.md docs/images/docs-ready-badge-glow.png
+          git diff --quiet && git diff --staged --quiet || git commit -m "ci(docs): auto-update docs ready status and glow badge"
+          git push

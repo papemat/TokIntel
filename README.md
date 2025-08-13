@@ -1,6 +1,7 @@
 # TokIntel - Analisi Multimodale di Video
 
 [![CI](https://github.com/papemat/TokIntel/actions/workflows/ci.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/ci.yml)
+[![Docs Ready](https://img.shields.io/badge/docs-ready-passing-brightgreen)](docs/status.json)
 [![E2E](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml)
 [![Exports](https://github.com/papemat/TokIntel/actions/workflows/export-health.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/export-health.yml)
 [![Perf Nightly](https://github.com/papemat/TokIntel/actions/workflows/perf-nightly.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/perf-nightly.yml)
@@ -325,6 +326,8 @@ Il link compare automaticamente nel commento della PR.
 ![Esempio Monitoraggio CI](docs/images/monitoraggio-ci-example.png)
 
 ![Anteprima badge CI con glow](docs/images/ci-badges-preview.png)
+
+![Docs Ready Glow](docs/images/docs-ready-badge-glow.png)
 
 ---
 
