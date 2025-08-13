@@ -1,0 +1,52 @@
+name: Lint Makefile
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  lint-makefile:
+    name: Lint Makefile (TAB + syntax)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Validate Makefile uses TAB for recipe lines
+        run: |
+          python - <<'PY'
+          import sys, re
+          txt = open("Makefile","rb").read().decode("utf-8","replace").splitlines()
+          in_recipe = False
+          bad = False
+          for i, l in enumerate(txt, 1):
+              # Inizio target (linea con colon, esclusi commenti/spazi)
+              if re.match(r"^[^\s#][^:]*:", l):
+                  in_recipe = True
+                  continue
+              # Linea vuota o commento dentro recipe: ok
+              if in_recipe and (l.strip()=="" or l.strip().startswith("#")):
+                  continue
+              # Ricetta valida: deve iniziare con TAB
+              if in_recipe and l.startswith("\t"):
+                  continue
+              # Uscita dalla ricetta: nuova directive/target
+              if in_recipe and re.match(r"^[^\s]", l):
+                  in_recipe = False
+                  # rianalizza questa riga nel prossimo giro
+                  if re.match(r"^[^\s#][^:]*:", l):
+                      in_recipe = True
+                  continue
+              # Riga non vuota, non commento, dentro ricetta ma senza TAB ⇒ errore
+              if in_recipe and l and not l.startswith("\t") and not l.lstrip().startswith("#"):
+                  print(f"Makefile:{i}: expected leading TAB in recipe line -> {l[:60]!r}")
+                  bad = True
+          sys.exit(1 if bad else 0)
+          PY
+      
+      - name: Test Makefile syntax (dry-run)
+        run: |
+          echo "🔍 Testing Makefile syntax with 'make -n'..."
+          make -n help || true
+          echo "✅ Makefile syntax OK"

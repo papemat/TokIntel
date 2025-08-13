@@ -1,5 +1,12 @@
 # TokIntel - Analisi Multimodale di Video
 
+<p align="center">
+  <img src="docs/images/docs-ready-badge-glow.png" alt="Docs Ready" height="24" />
+  <a href="https://github.com/papemat/TokIntel/actions">
+    <img src="https://img.shields.io/badge/CI-passing-brightgreen" alt="CI Status" />
+  </a>
+</p>
+
 [![CI](https://github.com/papemat/TokIntel/actions/workflows/ci.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/ci.yml)
 [![Docs Ready](https://img.shields.io/badge/docs-ready-passing-brightgreen)](docs/status.json)
 [![E2E](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/sprint3-e2e.yml)
