@@ -1,0 +1,14 @@
+repos:
+  - repo: local
+    hooks:
+      - id: docs-doctor
+        name: Docs Doctor (Quick Start + links)
+        entry: make docs-doctor
+        language: system
+        pass_filenames: false
+      - id: docs-doctor-idempotent
+        name: Docs Doctor Idempotency
+        entry: bash -c 'python3 .github/scripts/autofix_quickstart.py && python3 .github/scripts/autofix_quickstart.py && git diff --quiet'
+        language: system
+        pass_filenames: false
+        stages: [commit]

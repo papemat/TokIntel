@@ -1,0 +1,24 @@
+name: Glow Badges
+on:
+  push:
+    branches: [ "main" ]
+jobs:
+  glow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate glow badges
+        run: |
+          python3 scripts/generate_glow_badge.py
+      - name: Diff
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "github-actions"
+          git add docs/badges/*.svg || true
+          if git diff --cached --quiet; then
+            echo "No badge changes."
+            exit 0
+          else
+            git commit -m "ci(badges): refresh glow badges"
+            git push
+          fi
