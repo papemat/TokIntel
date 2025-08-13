@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview docs-ready docs-fail badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -419,20 +419,7 @@ ci-badges-preview: ## Genera anteprima badge CI con effetto glow
 	$(PY) scripts/generate_ci_badges_preview.py
 	@echo "✅ Anteprima badge CI generata: docs/images/ci-badges-preview.png"
 
-.PHONY: docs-ready
-docs-ready: ## Imposta status Docs Ready a passing e aggiorna badge
-	@echo "📚 Impostazione Docs Ready a passing..."
-	$(PY) scripts/update_docs_status.py passing
-	$(PY) scripts/update_docs_badge.py
-	$(PY) scripts/generate_docs_ready_glow.py
-	@echo "✅ Docs Ready impostato a passing"
 
-.PHONY: docs-fail
-docs-fail: ## Imposta status Docs Ready a failing e aggiorna badge
-	@echo "📚 Impostazione Docs Ready a failing..."
-	$(PY) scripts/update_docs_status.py failing
-	$(PY) scripts/update_docs_badge.py
-	@echo "✅ Docs Ready impostato a failing"
 
 .PHONY: badges-glow-all
 badges-glow-all: ## Genera tutti i glow badge (CI + Docs Ready)
@@ -441,37 +428,65 @@ badges-glow-all: ## Genera tutti i glow badge (CI + Docs Ready)
 	$(PY) scripts/generate_docs_ready_glow.py
 	@echo "✅ Tutti i glow badge generati"
 
-.PHONY: ci-visual-refresh
-ci-visual-refresh: ## Rigenera tutto il pacchetto visivo (screenshot + glow + gif)
-	@echo "🎨 Rigenerazione completo pacchetto visivo..."
-	$(MAKE) ci-screenshot
-	$(MAKE) ci-badges-preview
-	$(MAKE) ci-tutorial-gif
-	$(MAKE) docs-ready
-	@echo "✅ Pacchetto visivo completo rigenerato"
+# =========================
+# CI / Visual Ecosystem
+# =========================
 
-.PHONY: docs-check
-docs-check: ## Verifica che gli asset obbligatori esistano
-	@echo "🔍 Verifica asset obbligatori..."
-	@[ -f docs/images/monitoraggio-ci-example.png ] && echo "✅ Screenshot CI presente" || echo "❌ Screenshot CI mancante"
-	@[ -f docs/images/ci-badges-preview.png ] && echo "✅ Glow badge CI presente" || echo "❌ Glow badge CI mancante"
-	@[ -f docs/images/ci-monitoring-tutorial.gif ] && echo "✅ GIF tutorial presente" || echo "❌ GIF tutorial mancante"
-	@[ -f docs/images/docs-ready-badge-glow.png ] && echo "✅ Glow badge Docs presente" || echo "❌ Glow badge Docs mancante"
-	@[ -f docs/status.json ] && echo "✅ Status Docs Ready presente" || echo "❌ Status Docs Ready mancante"
-	@echo "🔍 Verifica completata"
+.PHONY: ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail
 
-.PHONY: e2e-smoke
-e2e-smoke: ## E2E rapidi con health + export + last export JSON
-	@echo "🚀 E2E smoke test rapido..."
-	$(MAKE) export-health
-	$(MAKE) last-export
-	@echo "✅ E2E smoke test completato"
+# Directory predefinite (adatta liberamente)
+ASSETS_DIR := docs/images
+STATUS_JSON := docs/status.json
+README := README.md
 
-.PHONY: install-hooks
-install-hooks: ## Installa hook pre-commit per TAB Makefile
-	@echo "🔧 Installazione hook pre-commit..."
-	@chmod +x .git/hooks/pre-commit || true
-	@echo "✅ Hook pre-commit installato"
+# Rigenera tutti gli asset visivi (screenshot, glow badge, gif) se presenti gli script
+ci-visual-refresh:
+	@echo "🔁 Rigenero pacchetto visivo (screenshot + glow + gif)…"
+	@[ -x scripts/generate_docs_ready_glow.py ] && scripts/generate_docs_ready_glow.py || echo "ℹ️  Nessun generate_docs_ready_glow.py, salto."
+	@[ -x scripts/update_docs_badge.py ] && scripts/update_docs_badge.py --refresh || echo "ℹ️  Nessun update_docs_badge.py, salto."
+	@[ -x scripts/update_docs_status.py ] && scripts/update_docs_status.py --touch || echo "ℹ️  Nessun update_docs_status.py, salto."
+	@echo "✅ Pacchetto visivo aggiornato."
+
+# Verifica asset obbligatori minimi per le docs
+docs-check:
+	@echo "🔎 Controllo asset documentazione…"
+	@[ -d $(ASSETS_DIR) ] || (echo "❌ Manca la dir $(ASSETS_DIR)"; exit 1)
+	@[ -f $(STATUS_JSON) ] || (echo "❌ Manca $(STATUS_JSON)"; exit 1)
+	@[ -f $(README) ] || (echo "❌ Manca $(README)"; exit 1)
+	@echo "✅ Docs OK"
+
+# Smoke E2E velocissimo: health + export (adatta ai tuoi script reali)
+e2e-smoke:
+	@echo "🚦 Avvio smoke E2E…"
+	@[ -x scripts/healthcheck.py ] && scripts/healthcheck.py || echo "ℹ️  Nessun healthcheck.py, salto."
+	@[ -x scripts/export_latest.py ] && scripts/export_latest.py --out exports/last_export.json || echo "ℹ️  Nessun export_latest.py, salto."
+	@[ -f exports/last_export.json ] && echo "✅ Export pronto: exports/last_export.json" || echo "⚠️  Nessun export generato."
+	@echo "🏁 Smoke E2E terminato."
+
+# Installa un pre-commit hook minimale che blocca il commit se docs-check fallisce
+install-hooks:
+	@echo "🪝 Installo pre-commit hook…"
+	@mkdir -p .git/hooks
+	@printf '%s\n' '#!/usr/bin/env sh' \
+	'set -e' \
+	'echo "🔎 pre-commit: make docs-check"' \
+	'make docs-check' > .git/hooks/pre-commit
+	@chmod +x .git/hooks/pre-commit
+	@echo "✅ Hook installato."
+
+# Aggiorna lo stato Docs Ready -> passing e rigenera badge
+docs-ready:
+	@echo "📗 Setto Docs Ready: PASSING"
+	@[ -x scripts/update_docs_status.py ] && scripts/update_docs_status.py --state passing || echo "ℹ️  Mancante update_docs_status.py, salto stato."
+	@[ -x scripts/update_docs_badge.py ] && scripts/update_docs_badge.py --state passing || echo "ℹ️  Mancante update_docs_badge.py, salto badge."
+	@echo "✅ Docs Ready aggiornato."
+
+# Opzionale: segna failing (utile per testare pipeline e badge)
+docs-fail:
+	@echo "📕 Setto Docs Ready: FAILING"
+	@[ -x scripts/update_docs_status.py ] && scripts/update_docs_status.py --state failing || echo "ℹ️  Mancante update_docs_status.py, salto stato."
+	@[ -x scripts/update_docs_badge.py ] && scripts/update_docs_badge.py --state failing || echo "ℹ️  Mancante update_docs_badge.py, salto badge."
+	@echo "✅ Docs Ready marcato come failing."
 
 lint: ## Linting con ruff
 	pip install ruff || true

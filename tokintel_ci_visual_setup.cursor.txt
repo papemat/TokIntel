@@ -1,169 +1,33 @@
-# 🚀 TokIntel CI/Visual Setup for Cursor
+# TokIntel – CI/Visual Setup (Cursor One‑Shot)
 
-## 🎯 Obiettivo
-Setup completo dell'ecosistema CI/Visual per TokIntel su nuovo clone.
+Obiettivo: Preparare un nuovo clone per lavorare con ecosistema CI/Visual e badge Docs Ready.
 
----
-
-## 1️⃣ Verifica prerequisiti
-
+## Passi automatici
+1) Apri un terminal in Cursor e lancia:
 ```bash
-# Verifica Python e pip
-python --version
-pip --version
-
-# Verifica git
-git --version
-
-# Verifica che siamo nella directory TokIntel
-pwd
-ls -la
-```
-
----
-
-## 2️⃣ Setup ambiente
-
-```bash
-# Crea virtual environment se non esiste
-python -m venv .venv
-
-# Attiva virtual environment
-source .venv/bin/activate  # Linux/macOS
-# oppure
-.venv\Scripts\activate     # Windows
-
-# Installa dipendenze
-pip install -r requirements.txt
-
-# Installa dipendenze aggiuntive per visual
-pip install pillow matplotlib
-```
-
----
-
-## 3️⃣ Setup hook pre-commit
-
-```bash
-# Installa hook per TAB Makefile
+git pull
 make install-hooks
-
-# Verifica che sia installato
-ls -la .git/hooks/pre-commit
-```
-
----
-
-## 4️⃣ Rigenerazione asset visivi
-
-```bash
-# Rigenera tutto il pacchetto visivo
 make ci-visual-refresh
-
-# Verifica che tutto sia stato creato
+make docs-ready
 make docs-check
 ```
 
----
-
-## 5️⃣ Setup Docs Ready
-
+2) Verifica lo smoke:
 ```bash
-# Imposta Docs Ready a passing
-make docs-ready
-
-# Verifica che il badge sia stato aggiunto al README
-grep -n "Docs Ready" README.md
-```
-
----
-
-## 6️⃣ Test rapido
-
-```bash
-# E2E smoke test
 make e2e-smoke
-
-# Verifica export health
-make export-health
 ```
 
----
-
-## 7️⃣ Commit e push
-
+3) Commit & push:
 ```bash
-# Aggiungi tutti i file generati
-git add .
-
-# Commit
-git commit -m "feat: complete CI/Visual ecosystem setup"
-
-# Push
+git add -A
+git commit -m "chore: bootstrap CI/Visual ecosystem on fresh clone"
 git push
 ```
 
----
-
-## ✅ Checklist finale
-
-- [ ] Virtual environment attivo
-- [ ] Hook pre-commit installato
-- [ ] Asset visivi generati (screenshot, glow, gif)
-- [ ] Badge Docs Ready nel README
-- [ ] Status Docs Ready a passing
-- [ ] E2E smoke test passato
-- [ ] Commit e push completati
-
----
-
-## 🚨 Troubleshooting
-
-### Se make ci-visual-refresh fallisce
+## Troubleshooting in Cursor
+- Se vedi `missing separator`, sostituisci gli spazi con TAB nelle ricette Makefile.
+- Se alcuni script non esistono, i target li saltano con messaggi "ℹ️". Aggiungili quando disponibili o ignora.
+- Se il badge non cambia, rilancia:
 ```bash
-# Verifica dipendenze
-pip install pillow matplotlib
-
-# Rigenera manualmente
-make ci-screenshot
-make ci-badges-preview
-make ci-tutorial-gif
-make docs-ready
+make docs-ready && git add docs/status.json README.md && git commit -m "docs: refresh Docs Ready badge" && git push
 ```
-
-### Se hook pre-commit non funziona
-```bash
-# Reinstalla
-make install-hooks
-
-# Verifica permessi
-chmod +x .git/hooks/pre-commit
-```
-
-### Se Docs Ready non si aggiorna
-```bash
-# Aggiorna manualmente
-make docs-ready
-git add docs/status.json docs/images/docs-ready-badge-glow.png README.md
-git commit -m "docs: update docs ready status"
-git push
-```
-
----
-
-## 🎉 Risultato atteso
-
-Dopo questo setup, il repo TokIntel avrà:
-
-- ✅ **Hook pre-commit** per TAB Makefile
-- ✅ **Screenshot CI** con annotazioni
-- ✅ **Glow badge** per CI e Docs Ready
-- ✅ **GIF tutorial** animata
-- ✅ **Badge Docs Ready** nel README
-- ✅ **Workflow automatici** configurati
-- ✅ **Target Makefile** per manutenzione
-
----
-
-**Stato:** ✅ **READY TO RUN**
-**Versione:** 1.0
