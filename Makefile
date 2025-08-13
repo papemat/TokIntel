@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -487,6 +487,16 @@ docs-fail:
 	@[ -x scripts/update_docs_status.py ] && scripts/update_docs_status.py --state failing || echo "ℹ️  Mancante update_docs_status.py, salto stato."
 	@[ -x scripts/update_docs_badge.py ] && scripts/update_docs_badge.py --state failing || echo "ℹ️  Mancante update_docs_badge.py, salto badge."
 	@echo "✅ Docs Ready marcato come failing."
+
+# Monitor continuo CI/Visual (rilancia docs-check e e2e-smoke quando rileva modifiche)
+monitor-ci:
+	@echo "👁️  Avvio monitor continuo CI/Visual..."
+	@echo "📁 Monitora: README.md, docs/, Makefile, scripts/, exports/"
+	@echo "🎯 Target: docs-check, e2e-smoke"
+	@echo "⏱️  Intervallo: 5 secondi"
+	@echo "🛑 Premi Ctrl+C per fermare"
+	@echo ""
+	$(PY) scripts/monitor_ci_visual.py
 
 lint: ## Linting con ruff
 	pip install ruff || true

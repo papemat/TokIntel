@@ -348,6 +348,7 @@ Il link compare automaticamente nel commento della PR.
 | **Test rapido** | `make e2e-smoke` | E2E smoke test (health + export) |
 | **Docs Ready** | `make docs-ready` | Imposta status passing + aggiorna badge |
 | **Docs Failing** | `make docs-fail` | Imposta status failing (per test) |
+| **Monitor continuo** | `make monitor-ci` | Monitora modifiche e rilancia target |
 
 ### 🎯 Comandi Chiave
 
@@ -361,6 +362,7 @@ Il link compare automaticamente nel commento della PR.
 | **Health** | `make last-export` | Info ultimo export |
 | **E2E** | `make test-e2e-only` | Solo test E2E |
 | **E2E** | `make ci-e2e-playwright` | E2E Playwright |
+| **Monitor** | `make monitor-ci` | Monitor continuo CI/Visual |
 
 ### 🔧 One-liner per Clone Nuovo
 
@@ -382,3 +384,4 @@ git add -A && git commit -m "chore: bootstrap CI/Visual after final polish" && g
 ---
 
 **TokIntel** - Analisi intelligente di contenuti video multimodali 🎬🔍
+# Test monitor
