@@ -560,3 +560,7 @@ monitor-log:
 	readme_path.write_text(readme, encoding="utf-8")
 	print("✅ README aggiornato")
 	PY
+
+monitor-matrix-summary:
+	@echo "🐍 Analizzo performance matrix Python 3.10/3.11…"
+	@python3 scripts/monitor_python_matrix_summary.py
