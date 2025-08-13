@@ -592,7 +592,18 @@ tokintel-run:
 tokintel-gui:
 	@echo "🌐 Avvio GUI TokIntel…"
 	@python3 -c "import time, webbrowser; time.sleep(2); webbrowser.open('$(TOK_GUI_URL)')" >/dev/null 2>&1 || true
-	@python3 launch_tokintel_gui.py
+	@streamlit run dash/app.py --server.port 8501 --server.headless false
+
+tokintel-gui-bg: ## Avvia GUI in background (non blocca terminale)
+	@echo "🌐 Avvio dashboard TokIntel in background..."
+	@nohup streamlit run dash/app.py --server.port 8501 --server.headless false > gui.log 2>&1 & disown || true
+	@echo "✅ Dashboard avviata! Apri: http://localhost:8501"
+	@echo "📄 Log: gui.log"
+
+tokintel-gui-stop: ## Ferma dashboard in background
+	@echo "🛑 Fermo dashboard TokIntel..."
+	@pkill -f "streamlit run dash/app.py" || true
+	@echo "✅ Dashboard fermata"
 
 tokintel-validate:
 	@if [ -z "$(IN)" ]; then echo "❌ Specifica IN=path/to/input.json"; exit 2; fi
