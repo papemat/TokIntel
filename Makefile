@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log tokintel-gui-quickstart quickstart-badge
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log tokintel-gui-quickstart quickstart-badge quickstart-ci-local
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -625,6 +625,18 @@ tokintel-gui-quickstart: ## Quick start completo (README + GUI)
 
 quickstart-badge:
 	@echo "🪄 Quick Start badge ready at docs/badges/quickstart_ready_glow.svg"
+
+quickstart-ci-local:
+	@echo "🔎 Quick Start Guard (local)"
+	@python3 scripts/generate_gui_screenshot.py || true
+	@python3 .github/scripts/validate_quickstart.py
+	@make -n tokintel-gui-bg
+	@make -n tokintel-gui-log
+	@make -n tokintel-gui-health
+	@make -n tokintel-gui-stop
+	@make -n tokintel-gui-quickstart
+	@python3 scripts/test_quickstart.py
+	@echo "✅ Quick Start Guard local OK"
 
 tokintel-validate:
 	@if [ -z "$(IN)" ]; then echo "❌ Specifica IN=path/to/input.json"; exit 2; fi
