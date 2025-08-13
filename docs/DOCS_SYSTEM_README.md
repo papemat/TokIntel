@@ -1,77 +1,32 @@
-# 📚 Docs System – Final One Shot
+# 📚 Docs System — Final Pack (idempotente)
 
 Sistema universale per garantire **idempotenza** nella generazione/aggiornamento della documentazione.
 
-## 🎯 Obiettivi
-- ✅ **Idempotenza**: Due run consecutivi → nessuna modifica
-- ✅ **Universale**: Funziona in qualsiasi repo
-- ✅ **Smart**: Rileva generatori automaticamente
-- ✅ **Soft**: Hook pre-commit non bloccante
-- ✅ **Strict**: CI che fallisce su non-idempotenza
+## Come funziona
+- `scripts/docs_generate_auto.sh` rileva automaticamente **Sphinx**, **MkDocs** o script custom.
+- Preset **riproducibili** (env/seed/scrub) riducono differenze (timestamp, hash, uuid, ordinamenti).
+- `scripts/cursor_docs_strict.sh` esegue due run consecutivi e fallisce se il secondo produce diff.
 
-## 🔧 Componenti
+## Target Makefile
+- `make docs-generate` → genera/aggiorna doc (auto-detect).
+- `make docs-idem-soft` → check non bloccante (pre-commit).
+- `make docs-idem-strict` → check bloccante (CI/PR).
+- `make docs-clean` → pulizia output.
+- `make docs-help` → riepilogo.
 
-### Script Strict
-- `scripts/cursor_docs_strict.sh` → Verifica STRICT (CI)
-- Rileva automaticamente: Makefile, Python, Sphinx, MkDocs
-- Fallisce se il secondo run produce diff
+## Sphinx/MkDocs (suggerimenti)
+- Sphinx `conf.py`:
+  ```python
+  import os
+  today = os.getenv("DOCS_BUILD_DATE", "1970-01-01")
+  html_last_updated_fmt = today
+  ```
 
-### Hook Pre-commit
-- `.git/hooks/pre-commit` → Verifica SOFT (locale)
-- Avvisa ma **non blocca** i commit
-- Perfetto per sviluppo veloce
+- MkDocs:
+  ```bash
+  DOCS_BUILD_DATE=1970-01-01 mkdocs build --clean --strict
+  ```
 
-### Target Makefile
-- `docs-generate` → Generatore principale (fallback no-op)
-- `docs-idem-soft` → Warning senza fallire
-- `docs-idem-strict` → Hard fail su non-idempotenza
+## Badge (facoltativo)
 
-## 🚀 Uso Rapido
-
-```bash
-# Setup completo
-bash setup_docs_system_final.sh
-
-# Test locale (non blocca)
-make docs-idem-soft
-
-# Test strict (fallisce se non idempotente)
-make docs-idem-strict
-
-# Integrazione CI
-# Copia lo step da CI_STRICT_STEP_YAML.md
-```
-
-## 🔍 Generatori Supportati
-
-Il sistema rileva automaticamente:
-1. **Makefile**: `make docs-generate`
-2. **Python**: `scripts/update_docs_status.py`
-3. **Sphinx**: `docs/conf.py` + `sphinx-build`
-4. **MkDocs**: `mkdocs.yml` + `mkdocs build`
-5. **Fallback**: No-op se nessun generatore trovato
-
-## 📋 Workflow Consigliato
-
-1. **Sviluppo**: Hook soft → sviluppo veloce
-2. **Pre-PR**: `make docs-idem-strict` → verifica locale
-3. **CI**: Step strict → garanzia qualità
-
-## 🛠️ Personalizzazione
-
-### Aggiungere un generatore custom
-```make
-docs-generate:
-	@echo "Generando docs..."
-	@python3 scripts/my_docs_generator.py
-	@echo "✅ Docs generate"
-```
-
-### Hook pre-commit custom
-```bash
-# Modifica .git/hooks/pre-commit per aggiungere altri controlli
-```
-
-## 🎯 Integrazione CI
-
-Usa lo step in `CI_STRICT_STEP_YAML.md` per integrare nel workflow GitHub Actions.
+`![Docs Idempotency](https://img.shields.io/badge/docs_idempotent-checked-success)`

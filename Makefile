@@ -9,39 +9,40 @@ TI_PORT ?= 8510
 
 
 # >>> DOCS SYSTEM TARGETS START >>>
+.PHONY: docs-generate docs-idem-soft docs-idem-strict docs-help docs-clean
 
-.PHONY: docs-generate docs-idem-soft docs-idem-strict docs-help
-
-# docs-generate:
-# - Se già definito altrove, verrà usato da scripts/cursor_docs_strict.sh.
-# - Qui forniamo un fallback no-op per non rompere i repo che non hanno generatori ancora.
-
+## docs-generate: genera/aggiorna la documentazione (auto-detect Sphinx/MkDocs/script)
 docs-generate:
-	@echo "ℹ️  Fallback docs-generate (no-op)."
-	@echo "   Sovrascrivi con il tuo generatore (es. sphinx, mkdocs, script python)."
+	@bash scripts/docs_generate_auto.sh
 
+## docs-idem-soft: verifica non bloccante (pre-commit)
 docs-idem-soft:
 	@echo "== 🧪 Docs Idempotency SOFT =="
 	@bash -c 'set -euo pipefail; \
-	if make -q docs-generate 2>/dev/null; then make docs-generate; else true; fi; \
-	git add -A >/dev/null 2>&1 || true; \
-	if make -q docs-generate 2>/dev/null; then make docs-generate; else true; fi; \
-	if ! git diff --quiet; then \
-		echo "⚠️  Non idempotente (soft): il secondo run ha prodotto modifiche."; \
-		git --no-pager diff --stat || true; \
-	else \
-		echo "✅ Idempotenza OK (nessuna modifica al secondo run)"; \
-	fi'
+	 bash scripts/docs_generate_auto.sh; \
+	 git add -A >/dev/null 2>&1 || true; \
+	 bash scripts/docs_generate_auto.sh; \
+	 if ! git diff --quiet; then \
+	   echo "⚠️  Non idempotente (soft): il secondo run ha prodotto modifiche."; \
+	   git --no-pager diff --stat || true; \
+	 else \
+	   echo "✅ Idempotenza OK (nessuna modifica al secondo run)"; \
+	 fi'
 
+## docs-idem-strict: verifica bloccante (CI/locale)
 docs-idem-strict:
-	@bash -c 'set -euo pipefail; scripts/cursor_docs_strict.sh'
+	@bash scripts/cursor_docs_strict.sh
 
+## docs-help: aiuto rapido
 docs-help:
-	@echo "📚 Docs System - Comandi disponibili:"
-	@echo "  make docs-generate    # Genera docs (fallback no-op)"
-	@echo "  make docs-idem-soft   # Test soft (warning, non blocca)"
-	@echo "  make docs-idem-strict # Test strict (fallisce se non idempotente)"
-	@echo "  make docs-help        # Questo aiuto"
+	@echo "Docs targets:"
+	@echo "  make docs-generate     # genera/aggiorna doc (auto-detect)"
+	@echo "  make docs-idem-soft    # check non bloccante (pre-commit)"
+	@echo "  make docs-idem-strict  # check bloccante (CI/PR)"
+	@echo "  make docs-clean        # pulizia output docs"
 
+## docs-clean: pulizia output doc/artefatti
+docs-clean:
+	@rm -rf docs/_build site docs_idempotency.diff || true
 # <<< DOCS SYSTEM TARGETS END <<<
 

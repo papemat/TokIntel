@@ -1,0 +1,48 @@
+name: Docs Idempotency
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  docs-idempotency:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+          cache: 'pip'
+
+      - name: Install generators (best-effort)
+        run: |
+          pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
+          pip install sphinx mkdocs mkdocs-material || true
+
+      - name: Run STRICT idempotency check
+        shell: bash
+        run: |
+          chmod +x scripts/cursor_docs_strict.sh
+          git config user.email "ci-bot@example.com"
+          git config user.name "ci-bot"
+          set +e
+          ./scripts/cursor_docs_strict.sh
+          RC=$?
+          set -e
+          if [ $RC -ne 0 ]; then
+            echo "Preparing diff artifact..."
+            test -f docs_idempotency.diff || git --no-pager diff > docs_idempotency.diff || true
+          fi
+          exit $RC
+
+      - name: Upload diff (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs_idempotency_diff
+          path: docs_idempotency.diff
