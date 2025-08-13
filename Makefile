@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log tokintel-gui-quickstart quickstart-badge quickstart-ci-local glow-badges
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log tokintel-gui-quickstart quickstart-badge quickstart-ci-local glow-badges docs-autofix docs-links docs-lint docs-doctor docs-idem-strict docs-ci-all
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -655,4 +655,39 @@ tokintel-batch:
 	echo "📦 Batch TokIntel → IN='$(IN)'  OUT='exports/$$out.json'"; \
 	python3 analyzer/tiktok_collections.py --source "$(IN)" --export "exports/$$out.json"; \
 	echo "✅ Analisi completata → exports/$$out.json"
+
+# =========================
+# Docs Doctor Helpers
+# =========================
+docs-autofix:
+	@python3 .github/scripts/autofix_quickstart.py
+
+docs-links:
+	@python3 .github/scripts/docs_linkcheck.py
+
+# If you already have markdownlint in CI, this can be a no-op locally.
+docs-lint:
+	@echo "Markdown lint (CI handles strict run)"; exit 0
+
+docs-doctor:
+	@echo "🩺 Docs Doctor: validate → autofix (anti-duplicati) → links"
+	@python3 .github/scripts/validate_quickstart.py
+	@python3 .github/scripts/autofix_quickstart.py
+	@python3 .github/scripts/docs_linkcheck.py
+	@echo "✅ Docs Doctor OK"
+
+docs-idem-strict:
+	@echo "🔁 Idempotenza strict: secondo run non deve produrre diff"
+	@python3 .github/scripts/autofix_quickstart.py
+	@python3 .github/scripts/autofix_quickstart.py
+	@git diff --quiet || (echo "❌ Non idempotente: diff dopo secondo run"; git --no-pager diff; exit 2)
+	@echo "✅ Idempotenza strict OK"
+
+docs-ci-all:
+	@echo "🧪 Docs CI All: autofix, linkcheck, lint, badges, idempotenza strict"
+	@python3 .github/scripts/autofix_quickstart.py || true
+	@python3 .github/scripts/docs_linkcheck.py || true
+	@$(MAKE) docs-lint || true
+	@$(MAKE) glow-badges || true
+	@$(MAKE) docs-idem-strict
 
