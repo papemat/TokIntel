@@ -9,7 +9,7 @@ TI_PORT ?= 8510
 
 
 # >>> DOCS SYSTEM TARGETS START >>>
-.PHONY: docs-generate docs-idem-soft docs-idem-strict docs-help docs-clean
+.PHONY: docs-generate docs-idem-soft docs-idem-strict docs-help docs-clean docs-scan
 
 ## docs-generate: genera/aggiorna la documentazione (auto-detect Sphinx/MkDocs/script)
 docs-generate:
@@ -33,15 +33,20 @@ docs-idem-soft:
 docs-idem-strict:
 	@bash scripts/cursor_docs_strict.sh
 
+## docs-scan: analizza l'output docs e segnala pattern non deterministici
+docs-scan:
+	@bash scripts/docs_output_scan.sh
+
 ## docs-help: aiuto rapido
 docs-help:
 	@echo "Docs targets:"
 	@echo "  make docs-generate     # genera/aggiorna doc (auto-detect)"
 	@echo "  make docs-idem-soft    # check non bloccante (pre-commit)"
 	@echo "  make docs-idem-strict  # check bloccante (CI/PR)"
-	@echo "  make docs-clean        # pulizia output docs"
+	@echo "  make docs-scan         # scan anti-timestamp/hash/uuid"
+	@echo "  make docs-clean        # pulizia output"
 
-## docs-clean: pulizia output doc/artefatti
+## docs-clean: pulizia output e artefatti
 docs-clean:
 	@rm -rf docs/_build site docs_idempotency.diff || true
 # <<< DOCS SYSTEM TARGETS END <<<

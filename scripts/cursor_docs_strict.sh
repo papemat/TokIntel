@@ -9,9 +9,10 @@ run_gen() {
     bash scripts/docs_generate_auto.sh
   fi
 }
-
 run_gen
 git add -A >/dev/null 2>&1 || true
+# Scan anti‑timestamp/hash/uuid best‑effort
+[ -x scripts/docs_output_scan.sh ] && bash scripts/docs_output_scan.sh || true
 run_gen
 
 if ! git diff --quiet; then

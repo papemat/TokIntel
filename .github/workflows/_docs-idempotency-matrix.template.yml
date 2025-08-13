@@ -1,0 +1,10 @@
+# Template opzionale per testare con più versioni Python
+strategy:
+  fail-fast: false
+  matrix:
+    python: ["3.10", "3.11", "3.12"]
+steps:
+  - uses: actions/setup-python@v5
+    with:
+      python-version: ${{ matrix.python }}
+      cache: pip

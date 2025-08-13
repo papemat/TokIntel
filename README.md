@@ -21,6 +21,7 @@
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](#)
 [![Monitor Hourly](https://img.shields.io/github/actions/workflow/status/papemat/TokIntel/monitor-ci-hourly.yml?label=Monitor%20Hourly)](https://github.com/papemat/TokIntel/actions/workflows/monitor-ci-hourly.yml)
 [![Quick Start Guard](https://github.com/papemat/TokIntel/actions/workflows/quickstart-guard.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/quickstart-guard.yml)
+![Docs Idempotency](https://img.shields.io/badge/docs_idempotent-checked-success)
 
 ## 📈 Ultimi esiti monitor
 
