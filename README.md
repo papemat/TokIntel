@@ -27,7 +27,11 @@
 > Fonte: `docs/monitor_history.json` (aggiornato via GitHub Actions).
 
 <!-- MONITOR_STATUS:START -->
-_(in attesa del primo aggiornamento automatico)_
+
+| Timestamp | Esito | Targets | Dettagli |
+|---|---|---|---|
+| 2025-08-13 07:19:45 UTC | 🔴 failure | `self-check` | [run](https://github.com/papemat/TokIntel/actions/runs/16930318768) |
+
 <!-- MONITOR_STATUS:END -->
 
 TokIntel è un sistema di analisi multimodale per video che combina:
