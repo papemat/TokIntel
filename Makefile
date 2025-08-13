@@ -564,3 +564,49 @@ monitor-log:
 monitor-matrix-summary:
 	@echo "🐍 Analizzo performance matrix Python 3.10/3.11…"
 	@python3 scripts/monitor_python_matrix_summary.py
+# =========================
+# TokIntel — Avvio rapido
+# =========================
+.PHONY: tokintel-run tokintel-gui tokintel-batch tokintel-validate
+
+# Default configurabili
+TOK_GUI_URL ?= http://localhost:8501
+TOK_INPUT_DEFAULT ?= input/my_collections.json
+TOK_OUTPUT_DEFAULT ?= run_$(shell date -u +%Y%m%d_%H%M%S)
+
+tokintel-run:
+	@echo "🚀 Avvio TokIntel..."
+	@read -p "Vuoi avviare la GUI (g) o la modalità batch (b)? [g/b] " mode; \
+	if [ "$$mode" = "g" ] || [ -z "$$mode" ]; then \
+		$(MAKE) tokintel-gui; \
+	elif [ "$$mode" = "b" ]; then \
+		infile="$(TOK_INPUT_DEFAULT)"; \
+		outfile="$(TOK_OUTPUT_DEFAULT)"; \
+		printf "📥 Percorso file input [%s]: " "$$infile"; read ans; [ -n "$$ans" ] && infile="$$ans"; \
+		printf "📤 Nome file output (senza estensione) [%s]: " "$$outfile"; read ans; [ -n "$$ans" ] && outfile="$$ans"; \
+		$(MAKE) tokintel-batch IN="$$infile" OUT="$$outfile"; \
+	else \
+		echo "❌ Scelta non valida"; exit 2; \
+	fi
+
+tokintel-gui:
+	@echo "🌐 Avvio GUI TokIntel…"
+	@( \
+	  python3 - <<'PY' & \
+	  import time, webbrowser; time.sleep(2); webbrowser.open("$(TOK_GUI_URL)"); \
+	  PY \
+	) >/dev/null 2>&1 || true
+	@python3 launch_tokintel_gui.py
+
+tokintel-validate:
+	@if [ -z "$(IN)" ]; then echo "❌ Specifica IN=path/to/input.json"; exit 2; fi
+	@python3 scripts/validate_collections.py "$(IN)"
+
+tokintel-batch:
+	@if [ -z "$(IN)" ]; then echo "❌ Specifica IN=path/to/input.json (o usa tokintel-run)"; exit 2; fi
+	@out="$(OUT)"; [ -n "$$out" ] || out="$(TOK_OUTPUT_DEFAULT)"; \
+	$(MAKE) -s tokintel-validate IN="$(IN)"; \
+	mkdir -p exports; \
+	echo "📦 Batch TokIntel → IN='$(IN)'  OUT='exports/$$out.json'"; \
+	python3 analyzer/tiktok_collections.py --source "$(IN)" --export "exports/$$out.json"; \
+	echo "✅ Analisi completata → exports/$$out.json"
