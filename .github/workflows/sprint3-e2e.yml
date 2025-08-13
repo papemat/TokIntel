@@ -11,7 +11,7 @@ jobs:
     name: Lint Makefile (TAB recipes)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Validate Makefile uses TAB for recipe lines
         run: |
           python - <<'PY'
@@ -52,7 +52,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
