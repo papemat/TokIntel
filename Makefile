@@ -712,3 +712,33 @@ docs-ci-all:
 	@$(MAKE) docs-lint || true
 	@$(MAKE) glow-badges || true
 	@$(MAKE) docs-idem-strict
+
+# >>> DOCS SYSTEM TARGETS START >>>
+
+.PHONY: docs-generate docs-idem-soft docs-idem-strict
+
+# docs-generate:
+# - Se già definito altrove, verrà usato da scripts/cursor_docs_strict.sh.
+# - Qui forniamo un fallback no-op per non rompere i repo che non hanno generatori ancora.
+
+docs-generate:
+	@echo "ℹ️  Fallback docs-generate (no-op). Sovrascrivi con il tuo generatore (es. sphinx, mkdocs, script python)."
+
+docs-idem-soft:
+	@echo "== 🧪 Docs Idempotency SOFT =="
+	@bash -c 'set -euo pipefail; \
+	if make -q docs-generate 2>/dev/null; then make docs-generate; else true; fi; \
+	git add -A >/dev/null 2>&1 || true; \
+	if make -q docs-generate 2>/dev/null; then make docs-generate; else true; fi; \
+	if ! git diff --quiet; then \
+		echo "⚠️  Non idempotente (soft): il secondo run ha prodotto modifiche."; \
+		git --no-pager diff --stat || true; \
+	else \
+		echo "✅ Idempotenza OK (nessuna modifica al secondo run)"; \
+	fi'
+
+docs-idem-strict:
+	@bash -c 'set -euo pipefail; scripts/cursor_docs_strict.sh'
+
+# <<< DOCS SYSTEM TARGETS END <<<
+

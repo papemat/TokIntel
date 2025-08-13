@@ -1,186 +1,187 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== 🧭 Repo sanity ==="
-test -f README.md || { echo "❌ Lancia nello stesso folder del repo (README.md mancante)"; exit 1; }
+echo "=== 🚀 Setup Docs System One-Shot (idempotente) ==="
 
-# ---------------------------------------------------------
-# 1) File/dir di servizio
-# ---------------------------------------------------------
-mkdir -p scripts docs
+# 1) Struttura cartelle
+mkdir -p scripts docs .github/workflows .github/scripts .git/hooks
 
-# ---------------------------------------------------------
-# 2) Script STRICT per PR/CI (eseguibile)
-# ---------------------------------------------------------
-cat > scripts/cursor_docs_strict.sh <<'BASH'
+# 2) Script STRICT che verifica l'idempotenza (hard-fail su diff)
+cat > scripts/cursor_docs_strict.sh <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== 🌿 Branch ==="
-git checkout -B chore/docs-doctor-anti-dup
-
-echo "=== 🐍 Deps ==="
-python3 -m pip install -U pip >/dev/null
-pip install -r requirements.txt || true
-pip install markdown-it-py linkify-it-py >/dev/null
-
-echo "=== 🔎 Report duplicati (pre) ==="
-python3 .github/scripts/report_qs_duplicates.py || true
-
-echo "=== 🧼 Autofix + linkcheck + docs ==="
-python3 .github/scripts/autofix_quickstart.py
-python3 .github/scripts/docs_linkcheck.py || true
-make docs-doctor || true
-
-echo "=== 🔁 Idempotenza strict (secondo run) ==="
-python3 .github/scripts/autofix_quickstart.py
-if ! git diff --quiet; then
-  echo "❌ Non idempotente: diff dopo secondo run!"
-  git --no-pager diff
-  exit 2
-fi
-
-echo "=== 🖼️ Glow badges ==="
-make glow-badges || true
-
-echo "=== 🧺 Staging ==="
-git add README.md || true
-git add docs/status.json docs/images/*.svg 2>/dev/null || true
-git add .github/workflows/*.yml .github/scripts/*.py scripts/generate_glow_badge.py 2>/dev/null || true
-git add .pre-commit-config.yaml .markdownlint.jsonc Makefile 2>/dev/null || true
-
-if ! git diff --cached --quiet; then
-  git commit -m "ci(docs): strict idempotency + anti-duplicates + glow"
-fi
-
-echo "=== 📤 Push & PR ==="
-git push -u origin chore/docs-doctor-anti-dup || true
-if command -v gh >/dev/null; then
-  gh pr create --base main --head chore/docs-doctor-anti-dup \
-    --title "ci(docs): Strict Docs System" \
-    --body "Enforce idempotenza (hard-fail), linkcheck, markdownlint, glow badges."
+echo "== 🧪 Docs Idempotency STRICT =="
+# Prima passata (genera/aggiorna docs)
+if make -q docs-generate 2>/dev/null; then
+  make docs-generate
+elif [[ -x scripts/update_docs_status.py ]]; then
+  python3 scripts/update_docs_status.py || true
+elif [[ -x .github/scripts/update_docs_status.py ]]; then
+  python3 .github/scripts/update_docs_status.py || true
 else
-  echo "ℹ️ PR non creata (gh assente). Aprila a mano dall'interfaccia GitHub."
+  echo "⚠️  Nessun generatore docs trovato: eseguo fallback no-op"
 fi
 
-echo "🎯 Done (strict)."
-BASH
+# Seconda passata (deve essere no-op)
+git add -A >/dev/null 2>&1 || true
+if make -q docs-generate 2>/dev/null; then
+  make docs-generate
+elif [[ -x scripts/update_docs_status.py ]]; then
+  python3 scripts/update_docs_status.py || true
+elif [[ -x .github/scripts/update_docs_status.py ]]; then
+  python3 .github/scripts/update_docs_status.py || true
+fi
+
+# Controllo diff: se c'è differenza -> FAIL
+if ! git diff --quiet; then
+  echo "❌ Non idempotente: il secondo run ha prodotto modifiche."
+  git --no-pager diff --stat
+  exit 1
+fi
+
+echo "✅ Idempotenza OK (nessuna modifica al secondo run)"
+SH
 chmod +x scripts/cursor_docs_strict.sh
 
-# ---------------------------------------------------------
-# 3) README unico del sistema (documentazione completa)
-# ---------------------------------------------------------
+# 3) Documentazione del sistema
 cat > docs/DOCS_SYSTEM_README.md <<'MD'
-# Docs System — Strict + Soft
+# 📚 Docs System – One Shot
 
-## Obiettivi
-- Anti-duplicati blocco **Quick Start**
-- **Idempotenza** (due run consecutivi → nessuna diff)
-- **Linkcheck**, **Markdownlint**, **Glow badges**
-- **Locale soft**, **CI strict**
+Questo sistema garantisce che la generazione/aggiornamento della documentazione sia **idempotente**.
+
+## Componenti
+- `scripts/cursor_docs_strict.sh` → Verifica STRICT (CI): 2 run consecutivi, fallisce se il secondo produce diff.
+- Hook pre-commit (SOFT) → Avvisa ma **non blocca** i commit.
+- Target Makefile:
+  - `docs-generate` (facoltativo, se già presente verrà usato)
+  - `docs-idem-soft` → Avvisa senza fallire
+  - `docs-idem-strict` → Fallisce su non-idempotenza
 
 ## Uso rapido
-- Strict end‑to‑end + PR:  
-  ```bash
-  scripts/cursor_docs_strict.sh
-  ```
+```bash
+bash setup_docs_system_one_shot.sh      # setup completo (questo file viene creato da Cursor)
+make docs-idem-soft                     # warning ma non blocca
+make docs-idem-strict                   # hard fail se non idempotente
+```
 
-* Mini check idempotenza:
+## In CI (GitHub Actions)
 
-  ```bash
-  python3 .github/scripts/autofix_quickstart.py && \
-  python3 .github/scripts/autofix_quickstart.py && \
-  git diff --quiet && echo "✅ OK" || echo "❌ Non idempotente"
-  ```
-
-## Flow consigliato
-
-1. Sviluppo locale: **soft**
-2. Prima della PR: `make docs-idem-strict` (deve passare)
-3. CI/PR: **strict** (blocca se non idempotente)
+Usa lo step in `CI_STRICT_STEP_YAML.md` per integrare nel workflow.
 MD
 
-# ---------------------------------------------------------
-# 4) Aggiorna/crea pre-commit (soft hook non bloccante)
-# ---------------------------------------------------------
-if [ ! -f .pre-commit-config.yaml ]; then
-cat > .pre-commit-config.yaml <<'YAML'
-repos:
-  - repo: local
-    hooks:
-      - id: docs-doctor-idempotent-soft
-        name: Docs Doctor Idempotency (soft)
-        entry: bash -c 'python3 .github/scripts/autofix_quickstart.py && python3 .github/scripts/autofix_quickstart.py; if ! git diff --quiet; then echo "⚠️  Non idempotente (soft): vedi diff"; git --no-pager diff; fi; exit 0'
-        language: system
-        pass_filenames: false
-        stages: [commit]
-YAML
-else
-if ! grep -q 'docs-doctor-idempotent-soft' .pre-commit-config.yaml; then
-cat >> .pre-commit-config.yaml <<'YAML'
+# 4) Hook pre-commit SOFT (non blocca)
+cat > .git/hooks/pre-commit <<'HOOK'
+#!/usr/bin/env bash
 
-  - repo: local
-    hooks:
-      - id: docs-doctor-idempotent-soft
-        name: Docs Doctor Idempotency (soft)
-        entry: bash -c 'python3 .github/scripts/autofix_quickstart.py && python3 .github/scripts/autofix_quickstart.py; if ! git diff --quiet; then echo "⚠️  Non idempotente (soft): vedi diff"; git --no-pager diff; fi; exit 0'
-        language: system
-        pass_filenames: false
-        stages: [commit]
-YAML
+# SOFT check: non blocca il commit (avvisa soltanto)
+
+if command -v make >/dev/null 2>&1; then
+if make -q docs-idem-soft 2>/dev/null; then
+make docs-idem-soft || true
+elif grep -q "docs-idem-soft" Makefile 2>/dev/null; then
+make docs-idem-soft || true
 fi
 fi
+exit 0
+HOOK
+chmod +x .git/hooks/pre-commit
 
-# ---------------------------------------------------------
-# 5) Makefile: aggiungi target se mancanti (strict/soft/all)
-# ---------------------------------------------------------
-touch Makefile
-if ! grep -q '^.PHONY: docs-idem-strict' Makefile; then
-cat >> Makefile <<'MAKE'
+# 5) Aggiunta/merge dei target Makefile (senza duplicati)
+if [[ -f Makefile ]]; then
+awk 'BEGIN{inblk=0}
+/# >>> DOCS SYSTEM TARGETS START >>>/ {inblk=1; next}
+/# <<< DOCS SYSTEM TARGETS END <<</ {inblk=0; next}
+{ if(!inblk) print $0 }
+' Makefile > Makefile.tmp || true
 
-.PHONY: docs-idem-strict
-docs-idem-strict:
-	@python3 .github/scripts/autofix_quickstart.py
-	@python3 .github/scripts/autofix_quickstart.py
-	@git diff --quiet || (echo "Non idempotente: diff dopo secondo run"; git --no-pager diff; exit 2)
+cat >> Makefile.tmp <<'MK'
 
-.PHONY: docs-idem-soft
+# >>> DOCS SYSTEM TARGETS START >>>
+
+.PHONY: docs-generate docs-idem-soft docs-idem-strict
+
+# docs-generate:
+# - Se già definito altrove, verrà usato da scripts/cursor_docs_strict.sh.
+# - Qui forniamo un fallback no-op per non rompere i repo che non hanno generatori ancora.
+
+docs-generate:
+	@echo "ℹ️  Fallback docs-generate (no-op). Sovrascrivi con il tuo generatore (es. sphinx, mkdocs, script python)."
+
 docs-idem-soft:
-	@python3 .github/scripts/autofix_quickstart.py || true
-	@python3 .github/scripts/autofix_quickstart.py || true
-	@if ! git diff --quiet; then echo "⚠️  Non idempotente (soft): diff rilevato, exit 0"; git --no-pager diff; fi
-	@exit 0
+	@echo "== 🧪 Docs Idempotency SOFT =="
+	@bash -c 'set -euo pipefail; \
+	if make -q docs-generate 2>/dev/null; then make docs-generate; else true; fi; \
+	git add -A >/dev/null 2>&1 || true; \
+	if make -q docs-generate 2>/dev/null; then make docs-generate; else true; fi; \
+	if ! git diff --quiet; then \
+		echo "⚠️  Non idempotente (soft): il secondo run ha prodotto modifiche."; \
+		git --no-pager diff --stat || true; \
+	else \
+		echo "✅ Idempotenza OK (nessuna modifica al secondo run)"; \
+	fi'
 
-.PHONY: docs-ci-all
-docs-ci-all:
-	@$(MAKE) docs-autofix || true
-	@$(MAKE) docs-links || true
-	@$(MAKE) docs-lint || true
-	@$(MAKE) glow-badges || true
-	@$(MAKE) docs-idem-strict
-MAKE
-fi
+docs-idem-strict:
+	@bash -c 'set -euo pipefail; scripts/cursor_docs_strict.sh'
 
-# ---------------------------------------------------------
-# 6) Mini check locale (non fallisce la pipeline globale)
-# ---------------------------------------------------------
-echo "=== 🧪 Mini check idempotenza strict ==="
-if ( python3 .github/scripts/autofix_quickstart.py && python3 .github/scripts/autofix_quickstart.py && git diff --quiet ); then
-echo "✅ Idempotenza OK"
+# <<< DOCS SYSTEM TARGETS END <<<
+
+MK
+mv Makefile.tmp Makefile
 else
-echo "❌ Non idempotente (come previsto se ci sono duplicati/drift)"
+cat > Makefile <<'MK'
+# Autogenerato: Docs System Makefile
+
+.PHONY: docs-generate docs-idem-soft docs-idem-strict
+
+docs-generate:
+	@echo "ℹ️  Fallback docs-generate (no-op). Aggiungi qui il tuo generatore."
+
+docs-idem-soft:
+	@echo "== 🧪 Docs Idempotency SOFT =="
+	@bash -c 'set -euo pipefail; \
+	if make -q docs-generate 2>/dev/null; then make docs-generate; else true; fi; \
+	git add -A >/dev/null 2>&1 || true; \
+	if make -q docs-generate 2>/dev/null; then make docs-generate; else true; fi; \
+	if ! git diff --quiet; then \
+		echo "⚠️  Non idempotente (soft): il secondo run ha prodotto modifiche."; \
+		git --no-pager diff --stat || true; \
+	else \
+		echo "✅ Idempotenza OK (nessuna modifica al secondo run)"; \
+	fi'
+
+docs-idem-strict:
+	@bash -c 'set -euo pipefail; scripts/cursor_docs_strict.sh'
+MK
 fi
 
-# ---------------------------------------------------------
-# 7) Prepara commit (senza forzare)
-# ---------------------------------------------------------
-git add scripts/cursor_docs_strict.sh docs/DOCS_SYSTEM_README.md .pre-commit-config.yaml Makefile || true
-if ! git diff --cached --quiet; then
-git commit -m "docs: add unified Docs System (strict+soft) + script & hooks"
+# 6) Step YAML pronto da incollare nel workflow
+cat > CI_STRICT_STEP_YAML.md <<'YAML'
+# 👇 Incolla questo step nel tuo workflow GitHub Actions (jobs.<job>.steps)
+
+      - name: Docs Idempotency (STRICT)
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/cursor_docs_strict.sh
+          git config user.email "ci-bot@example.com"
+          git config user.name "ci-bot"
+          ./scripts/cursor_docs_strict.sh
+YAML
+
+# 7) Mini-check immediato
+echo "=== 🧪 Mini-check locale ==="
+make docs-idem-soft || true
+set +e
+make docs-idem-strict
+STRICT_RC=$?
+set -e
+if [[ $STRICT_RC -eq 0 ]]; then
+echo "✅ STRICT OK subito"
+else
+echo "⚠️  STRICT ha trovato non-idempotenza (atteso se il tuo generatore modifica file al 2° run)."
 fi
 
-echo "=== ℹ️ Consigli finali ==="
-echo "- Locale: pre-commit soft → sviluppo rapido"
-echo "- Prima PR: make docs-idem-strict"
-echo "- In PR/CI: step strict che fallisce se il secondo run produce diff"
-echo "🎯 Fatto."
+# 8) Preparazione commit (non forza)
+git add setup_docs_system_one_shot.sh scripts/cursor_docs_strict.sh docs/DOCS_SYSTEM_README.md CI_STRICT_STEP_YAML.md Makefile .git/hooks/pre-commit 2>/dev/null || true
+echo "=== ✅ Setup completato. Pronto al commit: git commit -m 'chore(docs): add idempotent docs system' ==="

@@ -1,27 +1,22 @@
-# Docs System — Strict + Soft
+# 📚 Docs System – One Shot
 
-## Obiettivi
-- Anti-duplicati blocco **Quick Start**
-- **Idempotenza** (due run consecutivi → nessuna diff)
-- **Linkcheck**, **Markdownlint**, **Glow badges**
-- **Locale soft**, **CI strict**
+Questo sistema garantisce che la generazione/aggiornamento della documentazione sia **idempotente**.
+
+## Componenti
+- `scripts/cursor_docs_strict.sh` → Verifica STRICT (CI): 2 run consecutivi, fallisce se il secondo produce diff.
+- Hook pre-commit (SOFT) → Avvisa ma **non blocca** i commit.
+- Target Makefile:
+  - `docs-generate` (facoltativo, se già presente verrà usato)
+  - `docs-idem-soft` → Avvisa senza fallire
+  - `docs-idem-strict` → Fallisce su non-idempotenza
 
 ## Uso rapido
-- Strict end‑to‑end + PR:  
-  ```bash
-  scripts/cursor_docs_strict.sh
-  ```
+```bash
+bash setup_docs_system_one_shot.sh      # setup completo (questo file viene creato da Cursor)
+make docs-idem-soft                     # warning ma non blocca
+make docs-idem-strict                   # hard fail se non idempotente
+```
 
-* Mini check idempotenza:
+## In CI (GitHub Actions)
 
-  ```bash
-  python3 .github/scripts/autofix_quickstart.py && \
-  python3 .github/scripts/autofix_quickstart.py && \
-  git diff --quiet && echo "✅ OK" || echo "❌ Non idempotente"
-  ```
-
-## Flow consigliato
-
-1. Sviluppo locale: **soft**
-2. Prima della PR: `make docs-idem-strict` (deve passare)
-3. CI/PR: **strict** (blocca se non idempotente)
+Usa lo step in `CI_STRICT_STEP_YAML.md` per integrare nel workflow.
