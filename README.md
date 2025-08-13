@@ -336,6 +336,49 @@ Il link compare automaticamente nel commento della PR.
 
 ![Docs Ready Glow](docs/images/docs-ready-badge-glow.png)
 
+## 🚀 Tabella di Riferimento Rapida - CI/Visual Ecosystem
+
+### 📋 Flusso Tipico di Lavoro
+
+| Fase | Comando | Descrizione |
+|------|---------|-------------|
+| **Setup** | `make install-hooks` | Installa hook pre-commit per TAB Makefile |
+| **Pre-lavoro** | `make ci-visual-refresh` | Rigenera screenshot, glow, gif |
+| **Verifica** | `make docs-check` | Controlla asset documentazione |
+| **Test rapido** | `make e2e-smoke` | E2E smoke test (health + export) |
+| **Docs Ready** | `make docs-ready` | Imposta status passing + aggiorna badge |
+| **Docs Failing** | `make docs-fail` | Imposta status failing (per test) |
+
+### 🎯 Comandi Chiave
+
+| Categoria | Comando | Uso |
+|-----------|---------|-----|
+| **Visual** | `make ci-screenshot` | Screenshot CI con annotazioni |
+| **Visual** | `make ci-badges-preview` | Glow badge CI |
+| **Visual** | `make ci-tutorial-gif` | GIF tutorial animata |
+| **Visual** | `make badges-glow-all` | Tutti i glow badge |
+| **Health** | `make export-health` | Report export health |
+| **Health** | `make last-export` | Info ultimo export |
+| **E2E** | `make test-e2e-only` | Solo test E2E |
+| **E2E** | `make ci-e2e-playwright` | E2E Playwright |
+
+### 🔧 One-liner per Clone Nuovo
+
+```bash
+make install-hooks && make docs-check && make ci-visual-refresh && make docs-ready && \
+git add -A && git commit -m "chore: bootstrap CI/Visual after final polish" && git push
+```
+
+### 🚨 Troubleshooting Rapido
+
+| Problema | Soluzione |
+|----------|-----------|
+| `missing separator` | Ricette con **TAB** (non spazi) |
+| Badge grigio/rosso | Apri run → scarica artifact → leggi log |
+| Immagini non aggiornate | `make ci-visual-refresh` |
+| Docs Ready non cambia | `make docs-ready` + commit & push |
+| Hook non parte | `chmod +x .git/hooks/pre-commit` |
+
 ---
 
 **TokIntel** - Analisi intelligente di contenuti video multimodali 🎬🔍
