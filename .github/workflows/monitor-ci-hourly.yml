@@ -1,0 +1,223 @@
+name: Monitor CI/Visual (Hourly, Path‑Filtered + Log)
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'Makefile'
+      - 'docs/**'
+      - 'scripts/**'
+      - 'exports/**'
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: "Target Makefile (spazio-separati)"
+        default: "self-check"
+        required: true
+      python-version:
+        description: "Versione Python"
+        default: "3.11"
+        required: true
+  schedule:
+    - cron: "7 * * * *"
+
+permissions:
+  contents: write    # necessario per committare status/README
+  actions: read
+
+concurrency:
+  group: monitor-ci-visual
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: Path change gate (last 90m for schedule)
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.gate.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: gate
+        run: |
+          echo "skip=false" >> $GITHUB_OUTPUT
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            CHANGED=$(
+              git log --since="90 minutes ago" --name-only --pretty=format: \
+              | grep -E '^(Makefile|docs/|scripts/|exports/)' | wc -l || true
+            )
+            if [ "$CHANGED" -eq 0 ]; then
+              echo "⚪ Nessun cambiamento rilevante nelle ultime 90m: salto run."
+              echo "skip=true" >> $GITHUB_OUTPUT
+            else
+              echo "🟢 Cambiamenti rilevanti trovati: eseguo monitor."
+            fi
+          fi
+
+  monitor:
+    name: Monitor CI/Visual
+    needs: gate
+    if: needs.gate.outputs.skip == 'false' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      TARGETS: ${{ github.event.inputs.targets || 'self-check' }}
+      PYTHON_VERSION: ${{ github.event.inputs.python-version || '3.11' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install minimal deps (se presenti)
+        run: |
+          [ -f requirements.txt ] && pip install -r requirements.txt || true
+
+      - name: Make targets (self-check di default)
+        id: run_targets
+        run: |
+          set -e
+          echo "👉 Eseguo: $TARGETS"
+          START_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          for t in $TARGETS; do
+            echo "=== make $t ==="
+            make $t
+          done
+          END_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "start=${START_TS}" >> $GITHUB_OUTPUT
+          echo "end=${END_TS}" >> $GITHUB_OUTPUT
+
+      - name: Upload artifacts (se esistono)
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitor-ci-visual-${{ github.run_id }}
+          path: |
+            exports/last_export.json
+            docs/status.json
+            logs/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Aggiorna status.json + monitor_history.json + README
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os, re, datetime, pathlib
+
+          repo = os.environ.get("GITHUB_REPOSITORY")
+          run_id = os.environ.get("GITHUB_RUN_ID")
+          run_url = os.environ.get("RUN_URL")
+          event_name = os.environ.get("GITHUB_EVENT_NAME")
+          targets = os.environ.get("TARGETS", "self-check")
+          start = os.environ.get("STEP_START", "")  # not used
+          # Use outputs exposed by previous step via env:
+          start = os.environ.get("START_TS", "")
+          end = os.environ.get("END_TS", "")
+          # fallbacks from GHA outputs env:
+          start = os.environ.get("steps.run_targets.outputs.start", "") or start
+          end = os.environ.get("steps.run_targets.outputs.end", "") or end
+
+          # Conclusion is not directly available here; infer from GITHUB_JOB status via env, otherwise "success"
+          conclusion = os.environ.get("JOB_STATUS", "")
+          if not conclusion:
+              # Best-effort: read GITHUB_STEP_SUMMARY not available; assume success if reached
+              conclusion = "success"
+
+          now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+          status_path = pathlib.Path("docs/status.json")
+          hist_path = pathlib.Path("docs/monitor_history.json")
+          readme_path = pathlib.Path("README.md")
+
+          status = {
+              "docs_ready": "unknown",
+              "updated_at": None,
+              "monitor_last_run": None,
+              "monitor_result": None,
+              "monitor_targets": None,
+              "monitor_run_url": None
+          }
+          if status_path.exists():
+              try:
+                  status = json.loads(status_path.read_text(encoding="utf-8"))
+              except Exception:
+                  pass
+
+          # update status
+          status["monitor_last_run"] = now
+          status["monitor_result"] = conclusion
+          status["monitor_targets"] = targets
+          status["monitor_run_url"] = run_url
+
+          status_path.write_text(json.dumps(status, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+          # update history
+          hist = {"runs": []}
+          if hist_path.exists():
+              try:
+                  hist = json.loads(hist_path.read_text(encoding="utf-8"))
+              except Exception:
+                  pass
+
+          entry = {
+              "timestamp": now,
+              "result": conclusion,
+              "targets": targets,
+              "event": event_name,
+              "run_url": run_url,
+              "run_id": run_id
+          }
+          hist["runs"] = ([entry] + hist.get("runs", []))[:20]  # tieni solo ultimi 20
+          hist_path.write_text(json.dumps(hist, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+          # render README block
+          table_rows = []
+          icon = lambda r: "🟢" if r.lower()=="success" else ("🟡" if r.lower()=="neutral" else "🔴")
+          for r in hist["runs"][:5]:
+              ts = r["timestamp"].replace("T", " ").replace("Z"," UTC")
+              table_rows.append(f"| {ts} | {icon(r['result'])} {r['result']} | `{r['targets']}` | [run]({r['run_url']}) |")
+
+          block = [
+              "",
+              "| Timestamp | Esito | Targets | Dettagli |",
+              "|---|---|---|---|",
+              *table_rows,
+              ""
+          ]
+          rendered = "\n".join(block)
+
+          readme = readme_path.read_text(encoding="utf-8")
+          start_marker = "<!-- MONITOR_STATUS:START -->"
+          end_marker = "<!-- MONITOR_STATUS:END -->"
+          pattern = re.compile(rf"{re.escape(start_marker)}.*?{re.escape(end_marker)}", re.S)
+          new_block = f"{start_marker}\n{rendered}\n{end_marker}"
+          if pattern.search(readme):
+              readme = pattern.sub(new_block, readme)
+          else:
+              # fallback: append at end
+              readme += "\n\n" + new_block + "\n"
+
+          readme_path.write_text(readme, encoding="utf-8")
+          PY
+        env:
+          START_TS: ${{ steps.run_targets.outputs.start }}
+          END_TS:   ${{ steps.run_targets.outputs.end }}
+          JOB_STATUS: ${{ job.status }}
+
+      - name: Commit e push aggiornamenti (status + history + README)
+        if: always()
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/status.json docs/monitor_history.json README.md || true
+          if git diff --cached --quiet; then
+            echo "ℹ️  Nessuna modifica da committare."
+          else
+            git commit -m "docs(monitor): aggiorna status, history e README [skip ci]"
+            git push
+          fi

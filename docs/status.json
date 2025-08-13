@@ -1,5 +1,8 @@
 {
-  "docs_ready": "passing",
-  "last_updated": "2025-08-13T06:04:17.788821Z",
-  "updated_by": "docs-ready-workflow"
+  "docs_ready": "unknown",
+  "updated_at": null,
+  "monitor_last_run": null,
+  "monitor_result": null,
+  "monitor_targets": null,
+  "monitor_run_url": null
 }

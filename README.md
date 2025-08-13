@@ -20,6 +20,15 @@
 [![Performance Dashboard](https://img.shields.io/badge/dashboard-perf--trends-orange?style=flat&logo=chart-line)](http://localhost:8502)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](#)
 
+## 📈 Ultimi esiti monitor
+
+> Stato automatico del workflow **Monitor CI/Visual** (cron + manuale).  
+> Fonte: `docs/monitor_history.json` (aggiornato via GitHub Actions).
+
+<!-- MONITOR_STATUS:START -->
+_(in attesa del primo aggiornamento automatico)_
+<!-- MONITOR_STATUS:END -->
+
 TokIntel è un sistema di analisi multimodale per video che combina:
 - **Estrazione audio** (Whisper)
 - **Estrazione visiva** (OCR + CLIP)

@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -534,3 +534,29 @@ deploy-full: ## Deploy completo end-to-end su GitHub
 	@echo ""
 	@echo "✅ Deployment completato! Apri la repo su GitHub:"
 	@echo "URL: https://github.com/$${GH_OWNER:-your-username}/$${GH_REPO:-TokIntel}"
+
+# Aggiorna blocco 'Ultimi esiti monitor' nel README da monitor_history.json
+monitor-log:
+	@echo "📝 Aggiorno blocco 'Ultimi esiti monitor' nel README da monitor_history.json…"
+	@python - <<'PY'
+	import json, re, pathlib, datetime
+	hist_path = pathlib.Path("docs/monitor_history.json")
+	readme_path = pathlib.Path("README.md")
+	if not hist_path.exists():
+	    raise SystemExit("❌ docs/monitor_history.json mancante")
+	hist = json.loads(hist_path.read_text(encoding="utf-8"))
+	def icon(r): return "🟢" if r.lower()=="success" else ("🟡" if r.lower()=="neutral" else "🔴")
+	rows=[]
+	for r in hist.get("runs", [])[:5]:
+	    ts=r["timestamp"].replace("T"," ").replace("Z"," UTC")
+	    rows.append(f"| {ts} | {icon(r['result'])} {r['result']} | `{r['targets']}` | {r.get('run_url','')} |")
+	block="\n".join(["","| Timestamp | Esito | Targets | Dettagli |","|---|---|---|---|",*rows,""])
+	start="<!-- MONITOR_STATUS:START -->"; end="<!-- MONITOR_STATUS:END -->"
+	readme = readme_path.read_text(encoding="utf-8")
+	pat = re.compile(re.escape(start)+".*?"+re.escape(end), re.S)
+	new = f"{start}\n{block}\n{end}"
+	if pat.search(readme): readme = pat.sub(new, readme)
+	else: readme += "\n\n"+new+"\n"
+	readme_path.write_text(readme, encoding="utf-8")
+	print("✅ README aggiornato")
+	PY
