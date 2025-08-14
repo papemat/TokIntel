@@ -1,0 +1,37 @@
+name: Docs Scan (on-demand)
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  scan:
+    if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '/docs-scan') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.event.issue.number }}
+          fetch-depth: 0
+
+      - name: Setup Python (best-effort)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+          cache: 'pip'
+
+      - name: Install generators (best‑effort)
+        run: |
+          pip install --upgrade pip || true
+          if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
+          pip install sphinx mkdocs mkdocs-material || true
+
+      - name: Build docs (auto-detect) + scan only
+        run: |
+          bash scripts/docs_generate_auto.sh || true
+          bash scripts/docs_output_scan.sh

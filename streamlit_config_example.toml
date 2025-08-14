@@ -1,0 +1,19 @@
+[server]
+headless = true
+port = 8501
+address = "localhost"   # "0.0.0.0" per LAN
+runOnSave = true
+fileWatcherType = "auto"
+
+[client]
+showSidebarNavigation = true
+
+[theme]
+base = "light"
+
+[runner]
+fastReruns = true
+magicEnabled = false
+
+[logger]
+level = "info"
