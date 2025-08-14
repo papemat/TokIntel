@@ -68,3 +68,14 @@ run-lan:
 run-debug:
 	./scripts/run_tokintel.sh --debug --no-headless --port 8502
 # <<< QUICKSTART TARGETS END >>>
+
+# >>> QUICKSTART VALIDATION START >>>
+.PHONY: quickstart-check
+
+## quickstart-check: validazione rapida dei launcher
+quickstart-check:
+	@test -f scripts/run_tokintel.sh
+	@test -f scripts/run_tokintel.bat
+	@./scripts/run_tokintel.sh --help >/dev/null
+	@echo "✅ Quickstart scripts OK"
+# <<< QUICKSTART VALIDATION END >>>

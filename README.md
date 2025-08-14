@@ -66,6 +66,8 @@ Questa sezione mostra lo stato in tempo reale dei workflow CI/CD per TokIntel e 
 ## ⚡ Quick Start – TokIntel GUI
 
 [![Quick Start Ready](docs/badges/quickstart_ready_glow.svg)](#)
+![Quickstart Ready](https://img.shields.io/badge/Quickstart-Ready-brightgreen)
+![Cross‑Platform](https://img.shields.io/badge/Launchers-macOS%2FLinux%2FWindows-blue)
 
 > **🚀 Nuovo!** [Quickstart completo](README_QUICKSTART.md) con script launcher e troubleshooting
 
