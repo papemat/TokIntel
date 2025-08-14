@@ -2,7 +2,7 @@
 
 ![Quickstart Ready](https://img.shields.io/badge/Quickstart-Ready-brightgreen)
 ![Cross‑Platform](https://img.shields.io/badge/Launchers-macOS%2FLinux%2FWindows-blue)
-![Release v1.1.0](https://img.shields.io/badge/Release-v1.1.0--Quickstart-blue)
+[![Latest Release](https://img.shields.io/github/v/release/papemat/TokIntel?label=Latest%20Release&color=orange)](https://github.com/papemat/TokIntel/releases)
 
 <p align="center">
   <img src="docs/images/docs-ready-badge-glow.png" alt="Docs Ready" height="24" />
