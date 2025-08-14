@@ -60,10 +60,11 @@ run:
 
 ## run-lan: avvio con condivisione LAN
 run-lan:
-	PORT?=9000
+	# usa PORT=9000 make run-lan per cambiare porta
+	PORT?=8501
 	PORT=$(PORT) ./scripts/run_tokintel.sh --lan --no-headless
 
 ## run-debug: avvio con debug e browser
 run-debug:
-	./scripts/run_tokintel.sh --no-headless --debug
+	./scripts/run_tokintel.sh --debug --no-headless --port 8502
 # <<< QUICKSTART TARGETS END >>>
