@@ -67,6 +67,12 @@ Questa sezione mostra lo stato in tempo reale dei workflow CI/CD per TokIntel e 
 
 [![Quick Start Ready](docs/badges/quickstart_ready_glow.svg)](#)
 
+> **🚀 Nuovo!** [Quickstart completo](README_QUICKSTART.md) con script launcher e troubleshooting
+
+### Fast launch
+- macOS/Linux: `./scripts/run_tokintel.sh`
+- Windows: `scripts\run_tokintel.bat`
+
 | Azione                  | Comando | Descrizione |
 |-------------------------|---------|-------------|
 | ▶️ **Avvio rapido**     | `make tokintel-gui-bg` | Avvia in background e apre il browser |
