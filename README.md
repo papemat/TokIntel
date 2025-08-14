@@ -20,6 +20,8 @@
 [![Performance Dashboard](https://img.shields.io/badge/dashboard-perf--trends-orange?style=flat&logo=chart-line)](http://localhost:8502)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](#)
 [![Monitor Hourly](https://img.shields.io/github/actions/workflow/status/papemat/TokIntel/monitor-ci-hourly.yml?label=Monitor%20Hourly)](https://github.com/papemat/TokIntel/actions/workflows/monitor-ci-hourly.yml)
+[![Release](https://img.shields.io/github/actions/workflow/status/papemat/TokIntel/release-on-tag.yml?label=Release&branch=main)](https://github.com/papemat/TokIntel/actions/workflows/release-on-tag.yml)
+[![Latest Release](https://img.shields.io/github/v/release/papemat/TokIntel?label=Latest%20Release)](https://github.com/papemat/TokIntel/releases/latest)
 
 ## 📈 Ultimi esiti monitor
 
