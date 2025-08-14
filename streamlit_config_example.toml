@@ -1,0 +1,30 @@
+# TokIntel Streamlit Configuration Example
+# Copia questo file in ~/.streamlit/config.toml per personalizzare
+
+[server]
+port = 8501
+address = "0.0.0.0"
+maxUploadSize = 500
+enableCORS = true
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+primaryColor = "#FF6B6B"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#262730"
+
+[client]
+showErrorDetails = true
+
+[runner]
+magicEnabled = true
+installTracer = false
+fixMatplotlib = true
+
+[logger]
+level = "info"
+messageFormat = "%(asctime)s %(message)s"
