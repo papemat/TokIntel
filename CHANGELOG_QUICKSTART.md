@@ -1,17 +1,18 @@
 # Changelog – Quickstart Bundle
 
 ## v1.1.0 (2025-08-14)
-### Added
+### Aggiunto
 - `README_QUICKSTART.md`: guida setup in ~60s
-- `scripts/run_tokintel.sh` (macOS/Linux): launcher con auto-install deps, `--lan`, `--port`, `--no-headless`, `--debug`, `--app`
-- `scripts/run_tokintel.bat` (Windows): parità funzionale con lo script Unix
-- `streamlit_config_example.toml`: config ottimizzata per uso locale/prod
-- `FAQ_TROUBLESHOOTING.md`: top 10 problemi + fix
-- Target `make`: `run`, `run-lan`, `run-debug`
+- `scripts/run_tokintel.sh` (macOS/Linux): launcher con auto‑install deps, `--lan`, `--port`, `--no-headless`, `--debug`, `--app`
+- `scripts/run_tokintel.bat` (Windows): parità funzionale con Unix
+- `streamlit_config_example.toml`: configurazione suggerita per locale/prod
+- `FAQ_TROUBLESHOOTING.md`: top 10 problemi con soluzioni
+- Target `make`: `run`, `run-lan`, `run-debug`, `quickstart-check`
+- Template PR e workflow CI di dry‑run
 
-### Changed
-- `README.md`: aggiunto collegamento al quickstart e note sui launcher
+### Modificato
+- `README.md`: badge Quickstart e Cross‑Platform + note launcher
 
-### Notes
-- Headless di default; per sviluppo usare `--no-headless`
-- Se manca Streamlit, i launcher installano automaticamente da `requirements.txt`
+### Note
+- Headless di default; usare `--no-headless` in sviluppo
+- Auto‑install da `requirements.txt` se Streamlit manca

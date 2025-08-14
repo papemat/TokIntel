@@ -11,15 +11,10 @@ Lower friction for new users; consistent launcher behavior across platforms.
 
 ## How to test
 ```bash
-# macOS/Linux
 ./scripts/run_tokintel.sh --help
 PORT=9000 ./scripts/run_tokintel.sh --lan --no-headless --debug
-
-# Windows (PowerShell)
 .\scripts\run_tokintel.bat --help
 .\scripts\run_tokintel.bat --lan --port 9000 --no-headless --debug
-
-# Makefile (all platforms)
 make run
 make run-lan PORT=9000
 make run-debug

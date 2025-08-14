@@ -1,16 +1,15 @@
 # TokIntel – FAQ & Troubleshooting
 
-## 1) Port already in use (OSError: [Errno 98] / [WinError 10013])
-**Fix:** choose another port:
+## 1) Port already in use
+**Fix:** usa un'altra porta:
 ```bash
 PORT=9000 ./scripts/run_tokintel.sh
-# or
 scripts\run_tokintel.bat --port 9000
 ```
 
-## 2) `ModuleNotFoundError: No module named 'streamlit'`
+## 2) ModuleNotFoundError: streamlit
 
-**Fix:** the launcher installs requirements automatically. If it fails, run:
+**Fix:** i launcher installano automaticamente; in caso:
 
 ```bash
 python3 -m pip install -r requirements.txt
@@ -18,57 +17,51 @@ python3 -m pip install -r requirements.txt
 
 ## 3) Python not found
 
-**Fix:** install Python 3.10+ from python.org, then reopen terminal/PowerShell.
+Installa Python 3.10+ e riapri terminale/PowerShell.
 
-## 4) Permission denied on macOS/Linux running `.sh`
-
-**Fix:**
+## 4) Permission denied (.sh)
 
 ```bash
 chmod +x scripts/run_tokintel.sh
 ```
 
-## 5) Firewall blocks on Windows when using `--lan`
+## 5) Firewall Windows con --lan
 
-**Fix:** allow Python/Streamlit in Windows Defender Firewall when prompted.
+Consenti Python/Streamlit quando richiesto.
 
-## 6) Browser doesn't open automatically
+## 6) Browser non si apre
 
-**Reason:** headless mode is on by default. **Fix:** use `--no-headless`.
+Headless attivo: usa `--no-headless`.
 
-## 7) Blank page / endless loading after install
-
-**Fix:** clear cache and restart:
+## 7) Pagina bianca/loop
 
 ```bash
 rm -rf ~/.cache/streamlit
 ./scripts/run_tokintel.sh --debug
 ```
 
-## 8) Dependency mismatch (e.g., pandas version errors)
-
-**Fix:** upgrade deps from `requirements.txt`:
+## 8) Mismatch dipendenze
 
 ```bash
 python3 -m pip install --upgrade -r requirements.txt
 ```
 
-## 9) `Address already in use` on LAN
+## 9) Address in use su LAN
 
-**Fix:** another Streamlit is running. Kill it or pick a new port. On macOS/Linux:
+macOS/Linux:
 
 ```bash
 lsof -i :8501
 kill -9 <PID>
 ```
 
-On Windows:
+Windows:
 
 ```bat
 netstat -a -n -o | findstr :8501
 TaskKill /PID <PID> /F
 ```
 
-## 10) `No module named ...` for project imports
+## 10) Import di progetto
 
-**Fix:** ensure you launched from repo root (the scripts `cd` there automatically) and that your venv is active if you use one.
+Assicurati di avviare dalla root (gli script lo fanno) e venv attiva.

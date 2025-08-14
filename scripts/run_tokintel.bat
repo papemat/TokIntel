@@ -1,19 +1,16 @@
 @echo off
 setlocal ENABLEDELAYEDEXPANSION
 
-REM Resolve repo root (folder containing this script)/..
 set SCRIPT_DIR=%~dp0
 for %%I in ("%SCRIPT_DIR%..") do set ROOT_DIR=%%~fI
 cd /d "%ROOT_DIR%"
 
-REM Defaults
 if not defined PORT set PORT=8501
 set HOST=localhost
 set APP=dash/app.py
 set HEADLESS=1
 set DEBUG=0
 
-REM Parse args (basic)
 :parse
 if "%~1"=="" goto after_parse
 if "%~1"=="--lan"        ( set HOST=0.0.0.0 & shift & goto parse )
@@ -27,8 +24,6 @@ shift
 goto parse
 
 :after_parse
-
-REM Prefer venv
 set PY=
 if exist .venv\Scripts\python.exe set PY=.venv\Scripts\python.exe
 if not defined PY (
@@ -41,7 +36,6 @@ if not defined PY (
   exit /b 1
 )
 
-REM Check streamlit
 "%PY%" -c "import streamlit" >nul 2>nul
 if errorlevel 1 (
   echo [info] Installing Streamlit / requirements...
@@ -53,12 +47,10 @@ if errorlevel 1 (
   )
 )
 
-REM Env toggles
 if "%HEADLESS%"=="1" set STREAMLIT_SERVER_HEADLESS=true
 if "%HEADLESS%"=="0" set STREAMLIT_SERVER_HEADLESS=false
 if "%DEBUG%"=="1" set STREAMLIT_LOG_LEVEL=debug
 
-REM Launch
 "%PY%" -m streamlit run "%APP%" --server.port="%PORT%" --server.address="%HOST%"
 exit /b %errorlevel%
 

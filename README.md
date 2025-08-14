@@ -1,5 +1,8 @@
 # TokIntel - Analisi Multimodale di Video
 
+![Quickstart Ready](https://img.shields.io/badge/Quickstart-Ready-brightgreen)
+![Cross‑Platform](https://img.shields.io/badge/Launchers-macOS%2FLinux%2FWindows-blue)
+
 <p align="center">
   <img src="docs/images/docs-ready-badge-glow.png" alt="Docs Ready" height="24" />
   <a href="https://github.com/papemat/TokIntel/actions">
