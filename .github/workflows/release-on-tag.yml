@@ -1,0 +1,55 @@
+name: Release on Tag
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate release notes from CHANGELOG
+        id: notes
+        run: |
+          python - <<'PY'
+          import os, re, sys, json
+          tag = os.environ.get("GITHUB_REF", "").split("/")[-1]  # e.g. v1.1.0
+          path = "CHANGELOG_QUICKSTART.md"
+          if not os.path.exists(path):
+              print("CHANGELOG not found, using fallback")
+              print("::set-output name=body::TokIntel Quickstart Bundle {}".format(tag))
+              sys.exit(0)
+
+          text = open(path, "r", encoding="utf-8").read()
+          # Grab section starting with "## vX.Y.Z" up to next "## "
+          pat = re.compile(rf"(^##\\s+{re.escape(tag)}[\\s\\S]*?)(?=^##\\s+v|\\Z)", re.MULTILINE)
+          m = pat.search(text)
+          if not m:
+              # fallback: most recent section (first after header)
+              pat2 = re.compile(r"(^##\\s+v[\\d\\.]+[\\s\\S]*?)(?=^##\\s+v|\\Z)", re.MULTILINE)
+              m = pat2.search(text)
+          body = m.group(1).strip() if m else f"TokIntel Quickstart Bundle {tag}"
+          # Escape % for set-output compatibility
+          body = body.replace("%", "%25").replace("\n", "%0A").replace("\r", "%0D")
+          print(f"::set-output name=body::{body}")
+          PY
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: ${{ steps.notes.outputs.body }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
