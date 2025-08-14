@@ -51,3 +51,19 @@ docs-clean:
 	@rm -rf docs/_build site docs_idempotency.diff || true
 # <<< DOCS SYSTEM TARGETS END <<<
 
+# >>> QUICKSTART TARGETS START >>>
+.PHONY: run run-lan run-debug
+
+## run: avvio rapido con browser
+run:
+	./scripts/run_tokintel.sh --no-headless
+
+## run-lan: avvio con condivisione LAN
+run-lan:
+	PORT?=9000
+	PORT=$(PORT) ./scripts/run_tokintel.sh --lan --no-headless
+
+## run-debug: avvio con debug e browser
+run-debug:
+	./scripts/run_tokintel.sh --no-headless --debug
+# <<< QUICKSTART TARGETS END >>>
