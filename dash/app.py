@@ -4,10 +4,19 @@ Dashboard Streamlit per ricerca multimodale (testo + visione)
 """
 
 import streamlit as st
+from pathlib import Path
 
 # Health check endpoint for E2E testing
 if st.query_params.get("health") == "1":
     st.write("OK"); st.stop()
+
+def _tail_file(path: Path, n: int = 200) -> str:
+    try:
+        data = path.read_bytes()
+        lines = data.splitlines()[-n:]
+        return b"\n".join(lines).decode("utf-8", "ignore")
+    except FileNotFoundError:
+        return "Log file non ancora creato… avvia un ingest per generarlo."
 
 import yaml
 import json
@@ -746,6 +755,46 @@ def main():
             except Exception as e:
                 st.error(f"Errore durante l'ingest: {e}")
                 status_text.error("❌ Ingest fallito")
+    
+    # Ingest Logs Panel
+    with st.sidebar:
+        try:
+            from utils.logging_setup import LOG_DIR, INGEST_LOG
+            
+            with st.expander("📜 Ingest Logs", expanded=False):
+                cols = st.columns([2,1,1,1])
+                with cols[0]:
+                    st.caption(f"File: `{INGEST_LOG}`")
+                with cols[1]:
+                    auto = st.checkbox("Auto‑refresh", value=True, key="ingest_auto_refresh")
+                with cols[2]:
+                    n_lines = st.number_input("Linee", min_value=50, max_value=2000, value=300, step=50, key="ingest_lines")
+                with cols[3]:
+                    if st.button("Svuota log", type="secondary"):
+                        try:
+                            INGEST_LOG.write_text("")
+                            st.success("Log svuotato.")
+                        except FileNotFoundError:
+                            st.info("Log non ancora creato.")
+
+                if auto:
+                    st.autorefresh(interval=2000, key="ingestlog_refresh")
+
+                st.code(_tail_file(INGEST_LOG, int(n_lines)), language="log")
+
+                # Download
+                try:
+                    st.download_button(
+                        "Scarica ingest.log",
+                        data=INGEST_LOG.read_bytes(),
+                        file_name="ingest.log",
+                        mime="text/plain",
+                        type="secondary",
+                    )
+                except FileNotFoundError:
+                    st.caption("Scarica disponibile dopo il primo ingest.")
+        except ImportError:
+            st.caption("📜 Logs: installa utils/logging_setup.py")
     
     # Tabs
     tab1, tab2, tab3 = st.tabs(["🔍 Ricerca Testuale", "🖼️ Ricerca da Immagine", "⚙️ Gestione Indici"])

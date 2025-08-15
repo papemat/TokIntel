@@ -11,3 +11,6 @@ services:
     # per sviluppo live: monta la repo locale nel container
     volumes:
       - ./:/app
+      - tokintel_logs:/root/.tokintel/logs
+volumes:
+  tokintel_logs: {}

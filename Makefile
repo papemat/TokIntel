@@ -680,3 +680,10 @@ start-port: ## Avvia su porta custom (es. 8600)
 
 stop: ## Stop rapido (docker/down o kill porta)
 	./start_tokintel_auto.sh --stop
+
+logs-tail: ## Tail veloce dei log ingest
+	@tail -f $$HOME/.tokintel/logs/ingest.log || echo "Nessun log ancora creato."
+
+logs-open: ## Apri il file log nel default editor
+	@python3 -c "from pathlib import Path; p=Path.home()/'.tokintel'/'logs'/'ingest.log'; print(p)"
+	@open $$HOME/.tokintel/logs/ingest.log 2>/dev/null || true
