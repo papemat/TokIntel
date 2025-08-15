@@ -622,9 +622,6 @@ tokintel-batch:
 # Finalization Pack Targets
 # =========================
 
-run:
-	./scripts/run_tokintel.sh --no-headless
-
 run-lan:
 	PORT?=8501
 	PORT=$(PORT) ./scripts/run_tokintel.sh --lan --no-headless
