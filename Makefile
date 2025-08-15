@@ -759,3 +759,11 @@ env-show: ## Mostra variabili .env rilevanti
 .PHONY: test-fast
 test-fast: ## Pytest veloce su unit critiche (timing & export)
 	@python -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py
+
+.PHONY: dev-ready
+dev-ready: ## Mostra env, esegue test-fast e avvia dashboard con log live
+	@echo "== 🌱 TokIntel Dev Ready =="
+	@$(MAKE) env-show || true
+	@$(MAKE) test-fast || python -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py || true
+	@echo "== 🚀 Avvio dashboard con log live =="
+	LOG_LEVEL=INFO $(MAKE) start-logs
