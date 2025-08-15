@@ -786,3 +786,20 @@ dev-reset: ## Svuota log e mostra env (pronto per nuovo ciclo)
 	@$(MAKE) logs-clear || true
 	@$(MAKE) env-show || true
 	@echo "✅ Reset completato"
+
+.PHONY: dev-status
+dev-status: ## Mostra stato attuale della dashboard e variabili env
+	@echo "== 📡 TokIntel Dev Status =="
+	@$(MAKE) env-show || true
+	@echo "== 🔍 Controllo processo Streamlit sulla porta 8501 =="
+	@if command -v lsof >/dev/null 2>&1; then \
+		if lsof -i :8501 -sTCP:LISTEN >/dev/null 2>&1; then \
+			echo "✅ Dashboard attiva su http://localhost:8501"; \
+			lsof -i :8501 -sTCP:LISTEN | awk 'NR==1 || /python/ || /streamlit/'; \
+		else \
+			echo "⚠️  Dashboard NON in esecuzione sulla porta 8501"; \
+		fi; \
+	else \
+		echo "ℹ️ 'lsof' non disponibile. Provo fallback ps/grep..."; \
+		ps aux | grep -E 'streamlit|dash/app\.py' | grep -v grep || echo '   (nessun processo streamlit trovato)'; \
+	fi
