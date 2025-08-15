@@ -877,3 +877,102 @@ watch-install: ## Installa watcher consigliati (best-effort)
 	@command -v entr >/dev/null || (command -v brew >/dev/null && brew install entr) || true
 	@command -v fswatch >/dev/null || (command -v brew >/dev/null && brew install fswatch) || true
 	@python3 -c "import watchdog" >/dev/null 2>&1 || pip install watchdog || true
+
+# --- TOKINTEL::DEV_OPEN START
+.PHONY: dev-open
+dev-open: ## Apre la dashboard su http://localhost:$(PORT)
+	@echo "== 🌐 http://localhost:$(PORT) =="
+	@if command -v open >/dev/null 2>&1; then 		open "http://localhost:$(PORT)"; 	elif command -v xdg-open >/dev/null 2>&1; then 		xdg-open "http://localhost:$(PORT)" >/dev/null 2>&1 || true; 	elif command -v cmd.exe >/dev/null 2>&1; then 		cmd.exe /c start http://localhost:$(PORT) || true; 	else 		echo "ℹ️ Apri manualmente: http://localhost:$(PORT)"; 	fi
+# --- TOKINTEL::DEV_OPEN END
+
+# --- TOKINTEL::DEV_STATUS START
+.PHONY: dev-status
+dev-status: ## Mostra stato dashboard (porta + health HTTP) e variabili env
+	@$(MAKE) env-show || true
+	@if command -v lsof >/dev/null 2>&1; then 		if lsof -i :$(PORT) -sTCP:LISTEN >/dev/null 2>&1; then 			echo "✅ Dashboard attiva su http://localhost:$(PORT)"; 		else 			echo "⚠️ Dashboard NON attiva sulla porta $(PORT)"; 		fi; 	else 		echo "ℹ️ lsof non disponibile: controllo base con ps/grep"; 		ps aux | grep -E 'streamlit|dash/app\.py' | grep -v grep || true; 	fi
+	@if command -v curl >/dev/null 2>&1; then 		if curl -s --max-time 2 "http://localhost:$(PORT)" | grep -qi "streamlit"; then 			echo "🩺 Health check: OK (contenuto atteso)"; 		else 			echo "⚠️ Health check: porta ok ma contenuto inatteso o app non pronta"; 		fi; 	elif command -v wget >/dev/null 2>&1; then 		if wget -qO- --timeout=2 "http://localhost:$(PORT)" | grep -qi "streamlit"; then 			echo "🩺 Health check: OK (contenuto atteso)"; 		else 			echo "⚠️ Health check: porta ok ma contenuto inatteso o app non pronta"; 		fi; 	else 		echo "ℹ️ curl/wget assenti: salto health check HTTP"; 	fi
+# --- TOKINTEL::DEV_STATUS END
+
+# --- TOKINTEL::DEV START
+.PHONY: dev
+dev: ## Status; se non attiva, lancia dev-ready (autostart)
+	@echo "== 🛠️ TokIntel Dev =="
+	@$(MAKE) dev-status || true
+	@echo "== 🔁 Autostart check =="
+	@if command -v lsof >/dev/null 2>&1; then 		if lsof -i :$(PORT) -sTCP:LISTEN >/dev/null 2>&1; then 			echo "✅ Dashboard già attiva su http://localhost:$(PORT)"; 		else 			echo "🚀 Dashboard non attiva: lancio dev-ready..."; 			$(MAKE) dev-ready; 		fi; 	else 		if ps aux | grep -E 'streamlit|dash/app\.py' | grep -v grep >/dev/null; then 			echo "✅ Dashboard appare attiva (ps/grep)"; 		else 			echo "🚀 Dashboard non attiva: lancio dev-ready..."; 			$(MAKE) dev-ready; 		fi; 	fi
+# --- TOKINTEL::DEV END
+
+# --- TOKINTEL::DEV_READY START
+.PHONY: dev-ready
+dev-ready: ## Mostra env, esegue test-fast e avvia dashboard con log live
+	@echo "== 🌱 TokIntel Dev Ready =="
+	@$(MAKE) env-show || true
+	@$(MAKE) test-fast || python3 -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py || true
+	@echo "== 🚀 Avvio dashboard con log live =="
+	LOG_LEVEL=INFO $(MAKE) start-logs
+# --- TOKINTEL::DEV_READY END
+
+# --- TOKINTEL::DEV_STOP START
+.PHONY: dev-stop
+dev-stop: ## Termina dashboard e processi TokIntel
+	@echo "== 🛑 Stop dashboard e processi =="
+	@pkill -f "streamlit run dash/app.py" 2>/dev/null || true
+	@pkill -f "python.*dash/app.py" 2>/dev/null || true
+	@pkill -f "streamlit" 2>/dev/null || true
+	@lsof -ti tcp:$(PORT) 2>/dev/null | xargs -r kill -9 2>/dev/null || true
+	@echo "✅ Processi terminati (se presenti)"
+# --- TOKINTEL::DEV_STOP END
+
+# --- TOKINTEL::DEV_RESET START
+.PHONY: dev-reset
+dev-reset: ## Svuota log e mostra env
+	@echo "== ♻️ TokIntel Dev Reset =="
+	@$(MAKE) logs-clear || true
+	@$(MAKE) env-show || true
+	@echo "✅ Reset completato"
+# --- TOKINTEL::DEV_RESET END
+
+# --- TOKINTEL::DEV_RESTART START
+.PHONY: dev-restart
+dev-restart: ## Stop + Ready in un colpo solo
+	@$(MAKE) dev-stop || true
+	@sleep 2
+	@$(MAKE) dev-ready
+# --- TOKINTEL::DEV_RESTART END
+
+# --- TOKINTEL::DEV_WATCH START
+.PHONY: dev-watch
+dev-watch: ## Hot reload: osserva file e rilancia dev-restart automaticamente
+	@echo "== 👀 TokIntel Dev Watch (PORT=$${PORT:-8501}) =="
+	@./scripts/dev_watch.sh
+# --- TOKINTEL::DEV_WATCH END
+
+# --- TOKINTEL::ENV_SHOW START
+.PHONY: env-show
+env-show: ## Mostra variabili .env rilevanti
+	@echo "TIMING_FAST=$${TIMING_FAST:-30}"
+	@echo "TIMING_SLOW=$${TIMING_SLOW:-60}"
+	@echo "PORT=$${PORT:-8501}"
+# --- TOKINTEL::ENV_SHOW END
+
+# --- TOKINTEL::LOGS_CLEAR START
+.PHONY: logs-clear
+logs-clear: ## Svuota i rotating logs di ingest
+	@[ -f $$HOME/.tokintel/logs/ingest.log ] && : > $$HOME/.tokintel/logs/ingest.log || true
+	@echo "✅ ingest.log pulito"
+# --- TOKINTEL::LOGS_CLEAR END
+
+# --- TOKINTEL::TEST_FAST START
+.PHONY: test-fast
+test-fast: ## Pytest veloce (timing & CSV)
+	@python -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py || python3 -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py
+# --- TOKINTEL::TEST_FAST END
+
+# --- TOKINTEL::WATCH_INSTALL START
+.PHONY: watch-install
+watch-install: ## Installa watcher consigliati (best-effort)
+	@command -v watchexec >/dev/null || (command -v brew >/dev/null && brew install watchexec) || true
+	@command -v entr >/dev/null || (command -v brew >/dev/null && brew install entr) || true
+	@command -v fswatch >/dev/null || (command -v brew >/dev/null && brew install fswatch) || true
+	@python3 -c "import watchdog" >/dev/null 2>&1 || pip install watchdog || true
+# --- TOKINTEL::WATCH_INSTALL END
