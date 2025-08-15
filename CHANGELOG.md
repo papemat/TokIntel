@@ -1,3 +1,14 @@
+## [1.1.5-dev] — 2025-08-15
+### Added
+- Unit test per soglie timing FAST/SLOW e CSV export.
+- Legenda soglie nella dashboard (env-driven).
+- Target Make `test-fast` per test rapidi.
+
+### Config
+- Soglie timing configurabili via `.env`: `TIMING_FAST`, `TIMING_SLOW`.
+
+---
+
 ## [1.1.4] — 2025-08-15
 
 ### Added

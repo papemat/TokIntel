@@ -755,3 +755,7 @@ logs-clear: ## Svuota i rotating logs di ingest
 env-show: ## Mostra variabili .env rilevanti
 	@echo "TIMING_FAST=$${TIMING_FAST:-30}"
 	@echo "TIMING_SLOW=$${TIMING_SLOW:-60}"
+
+.PHONY: test-fast
+test-fast: ## Pytest veloce su unit critiche (timing & export)
+	@python -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py

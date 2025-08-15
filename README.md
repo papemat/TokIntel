@@ -539,6 +539,16 @@ Apri una Issue con:
 - Output di `--debug` o log del container
 - Passi per riprodurre + screenshot (se utile)
 
+## ⚙️ Config timing
+Imposta le soglie colore per le durate via `.env` (oppure variabili d'ambiente):
+
+```bash
+TIMING_FAST=30
+TIMING_SLOW=60
+```
+
+Nella dashboard vedrai la legenda: 🟢 < FAST · 🟠 FAST–SLOW · 🔴 > SLOW.
+
 ---
 
 **TokIntel** - Analisi intelligente di contenuti video multimodali 🎬🔍

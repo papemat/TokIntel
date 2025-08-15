@@ -1210,6 +1210,16 @@ def main():
     st.markdown("---")
     st.markdown("🎬 **TokIntel** - Dashboard Multimodale per Analisi Video")
 
+# --- TOKINTEL_TIMING_LEGEND (idempotent block) ---
+try:
+    import streamlit as st
+    from utils.timing_config import FAST, SLOW
+    st.caption(f"🟢 < {FAST:.0f}s · 🟠 {FAST:.0f}–{SLOW:.0f}s · 🔴 > {SLOW:.0f}s (configurabili via .env)")
+except Exception:
+    # Non bloccare la UI se l'import fallisce in ambienti di test
+    pass
+# --- end TOKINTEL_TIMING_LEGEND ---
+
 # Sprint 3: Health check endpoint for E2E tests
 if st.query_params.get("health") == "1":
     st.write("OK")
