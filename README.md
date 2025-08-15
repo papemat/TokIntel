@@ -111,6 +111,80 @@ Modifica i file localmente: Streamlit ricarica in automatico.
 
 > Nota: se l'utente non ha Docker, indirizzalo alla sezione Quickstart classica (venv + launcher).
 
+## 🚀 Quick Start — macOS TokIntel
+
+Questa sezione ti guida ad avviare TokIntel su macOS usando lo script **start_tokintel_auto.sh** integrato.
+
+> 📖 **Documentazione completa**: [QUICKSTART_MACOS.md](QUICKSTART_MACOS.md)
+
+---
+
+### 1️⃣ Avvio Smart
+Sceglie automaticamente Docker (se disponibile) o virtualenv Python.
+```bash
+make start
+```
+oppure direttamente:
+```bash
+./start_tokintel_auto.sh
+```
+
+---
+
+### 2️⃣ Modalità Specifiche
+- **Forza Docker**
+```bash
+make start-docker
+```
+- **Forza venv**
+```bash
+make start-venv
+```
+
+---
+
+### 3️⃣ Opzioni Avanzate
+- **Porta custom**
+```bash
+PORT=8600 make start-port
+```
+- **Log in tempo reale**
+```bash
+make start-logs
+```
+- **Stop rapido**
+```bash
+make stop
+```
+
+---
+
+### 4️⃣ Accesso alla Dashboard
+Una volta avviato, apri:
+```
+http://localhost:8501
+```
+Oppure la porta scelta (es. `http://localhost:8600`).
+
+---
+
+### 5️⃣ Alias opzionali (per avvio da qualsiasi directory)
+Aggiungi a `~/.zshrc`:
+```bash
+alias tokintel-start="cd ~/Documents/TokIntel && ./start_tokintel_auto.sh"
+alias tokintel-stop="cd ~/Documents/TokIntel && ./start_tokintel_auto.sh --stop"
+```
+Poi ricarica:
+```bash
+source ~/.zshrc
+```
+Ora puoi avviare TokIntel semplicemente con:
+```bash
+tokintel-start
+```
+
+---
+
 # 2. Demo multimodale (genera frame finti, OCR, indice visivo)
 make multimodal-demo
 
