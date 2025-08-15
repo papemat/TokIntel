@@ -657,3 +657,26 @@ docker-up:
 
 docker-down:
 	docker compose down
+
+# =========================
+# Auto Startup Script Targets
+# =========================
+.PHONY: start start-docker start-venv start-logs start-port stop
+
+start: ## Avvia TokIntel in modalità smart (auto docker/venv)
+	./start_tokintel_auto.sh
+
+start-docker: ## Forza Docker
+	./start_tokintel_auto.sh --mode docker
+
+start-venv: ## Forza venv
+	./start_tokintel_auto.sh --mode venv
+
+start-logs: ## Avvia e mostra i log
+	./start_tokintel_auto.sh --logs
+
+start-port: ## Avvia su porta custom (es. 8600)
+	PORT=8600 ./start_tokintel_auto.sh
+
+stop: ## Stop rapido (docker/down o kill porta)
+	./start_tokintel_auto.sh --stop
