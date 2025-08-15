@@ -803,3 +803,16 @@ dev-status: ## Mostra stato attuale della dashboard e variabili env
 		echo "ℹ️ 'lsof' non disponibile. Provo fallback ps/grep..."; \
 		ps aux | grep -E 'streamlit|dash/app\.py' | grep -v grep || echo '   (nessun processo streamlit trovato)'; \
 	fi
+
+.PHONY: dev-open
+dev-open: ## Apre la dashboard su http://localhost:8501 (macOS/Linux/WSL)
+	@echo "== 🌐 Apri dashboard: http://localhost:8501 =="
+	@if command -v open >/dev/null 2>&1; then \
+		open "http://localhost:8501"; \
+	elif command -v xdg-open >/dev/null 2>&1; then \
+		xdg-open "http://localhost:8501" >/dev/null 2>&1 || true; \
+	elif grep -qi microsoft /proc/version 2>/dev/null; then \
+		cmd.exe /c start http://localhost:8501 || true; \
+	else \
+		echo "ℹ️ Apri manualmente: http://localhost:8501"; \
+	fi
