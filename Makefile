@@ -644,7 +644,16 @@ release-dry:
 	./scripts/release_after_merge.sh v1.1.1 --dry-run
 
 release:
-	./scripts/release_after_merge.sh v1.1.1
+	@echo "== TokIntel release =="
+	git checkout main
+	git fetch origin main --tags
+	git pull --ff-only origin main || git pull --no-rebase origin main
+	git add -A
+	@git commit -m "chore: release v$${VER}" || true
+	@SKIP_DOCS_STRICT=1 git push origin main
+	@git tag -a v$${VER} -m "TokIntel v$${VER}" || true
+	@git push origin v$${VER} || true
+	@echo "👉 Now run: gh release create v$${VER} --title \"TokIntel v$${VER}\" --notes-file RELEASE_NOTES_v$${VER}.md"
 
 notes:
 	@python3 scripts/gen_release_notes.py v1.1.1
