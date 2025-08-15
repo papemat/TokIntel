@@ -5,6 +5,7 @@ PY ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else which
 NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
+PORT ?= 8501
 
 .PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log run-lan run-debug quickstart-check release-test release-dry release release-v1.1.4 notes docker-build docker-up docker-down test-timing timing-demo
 
@@ -791,13 +792,29 @@ dev-reset: ## Svuota log e mostra env (pronto per nuovo ciclo)
 dev-status: ## Mostra stato attuale della dashboard e variabili env
 	@echo "== 📡 TokIntel Dev Status =="
 	@$(MAKE) env-show || true
-	@echo "== 🔍 Controllo processo Streamlit sulla porta 8501 =="
+	@echo "== 🔍 Controllo processo Streamlit sulla porta $(PORT) =="
 	@if command -v lsof >/dev/null 2>&1; then \
-		if lsof -i :8501 -sTCP:LISTEN >/dev/null 2>&1; then \
-			echo "✅ Dashboard attiva su http://localhost:8501"; \
-			lsof -i :8501 -sTCP:LISTEN | awk 'NR==1 || /python/ || /streamlit/'; \
+		if lsof -i :$(PORT) -sTCP:LISTEN >/dev/null 2>&1; then \
+			echo "✅ Dashboard attiva su http://localhost:$(PORT)"; \
+			lsof -i :$(PORT) -sTCP:LISTEN | awk 'NR==1 || /python/ || /streamlit/'; \
+			@echo "== 🔍 Health check HTTP =="; \
+			@if command -v curl >/dev/null 2>&1; then \
+				if curl -s -f http://localhost:$(PORT) >/dev/null 2>&1; then \
+					echo "✅ HTTP OK - Dashboard risponde"; \
+				else \
+					echo "⚠️  HTTP KO - Porta aperta ma dashboard non risponde"; \
+				fi; \
+			elif command -v wget >/dev/null 2>&1; then \
+				if wget -q --spider http://localhost:$(PORT) 2>/dev/null; then \
+					echo "✅ HTTP OK - Dashboard risponde"; \
+				else \
+					echo "⚠️  HTTP KO - Porta aperta ma dashboard non risponde"; \
+				fi; \
+			else \
+				echo "ℹ️  HTTP check non disponibile (curl/wget mancanti)"; \
+			fi; \
 		else \
-			echo "⚠️  Dashboard NON in esecuzione sulla porta 8501"; \
+			echo "⚠️  Dashboard NON in esecuzione sulla porta $(PORT)"; \
 		fi; \
 	else \
 		echo "ℹ️ 'lsof' non disponibile. Provo fallback ps/grep..."; \
@@ -805,14 +822,14 @@ dev-status: ## Mostra stato attuale della dashboard e variabili env
 	fi
 
 .PHONY: dev-open
-dev-open: ## Apre la dashboard su http://localhost:8501 (macOS/Linux/WSL)
-	@echo "== 🌐 Apri dashboard: http://localhost:8501 =="
+dev-open: ## Apre la dashboard su http://localhost:$(PORT) (macOS/Linux/WSL)
+	@echo "== 🌐 Apri dashboard: http://localhost:$(PORT) =="
 	@if command -v open >/dev/null 2>&1; then \
-		open "http://localhost:8501"; \
+		open "http://localhost:$(PORT)"; \
 	elif command -v xdg-open >/dev/null 2>&1; then \
-		xdg-open "http://localhost:8501" >/dev/null 2>&1 || true; \
-	elif grep -qi microsoft /proc/version 2>/dev/null; then \
-		cmd.exe /c start http://localhost:8501 || true; \
+		xdg-open "http://localhost:$(PORT)" >/dev/null 2>&1 || true; \
+	elif command -v cmd.exe >/dev/null 2>&1; then \
+		cmd.exe /c start http://localhost:$(PORT) || true; \
 	else \
-		echo "ℹ️ Apri manualmente: http://localhost:8501"; \
+		echo "ℹ️ Apri manualmente: http://localhost:$(PORT)"; \
 	fi

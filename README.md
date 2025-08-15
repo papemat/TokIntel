@@ -545,9 +545,16 @@ Imposta le soglie colore per le durate via `.env` (oppure variabili d'ambiente):
 ```bash
 TIMING_FAST=30
 TIMING_SLOW=60
+PORT=8501
 ```
 
 Nella dashboard vedrai la legenda: 🟢 < FAST · 🟠 FAST–SLOW · 🔴 > SLOW.
+
+- `PORT`: porta su cui avviare la dashboard (default `8501`).  
+  Esempio:
+  ```bash
+  make dev PORT=8502
+  ```
 
 ---
 
