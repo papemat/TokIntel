@@ -745,3 +745,13 @@ timing-demo: ## Demo del sistema di timing (simulazione ingest)
 	.venv/bin/python scripts/test_timing_demo.py
 	@echo "✅ Demo timing completata"
 	@echo "📊 Controlla i log per vedere le durate colorate nella dashboard"
+
+.PHONY: logs-clear
+logs-clear: ## Svuota i rotating logs di ingest
+	@[ -f $$HOME/.tokintel/logs/ingest.log ] && : > $$HOME/.tokintel/logs/ingest.log || true
+	@echo "✅ ingest.log pulito"
+
+.PHONY: env-show
+env-show: ## Mostra variabili .env rilevanti
+	@echo "TIMING_FAST=$${TIMING_FAST:-30}"
+	@echo "TIMING_SLOW=$${TIMING_SLOW:-60}"
