@@ -1,8 +1,8 @@
 {
   "docs_ready": "unknown",
   "updated_at": null,
-  "monitor_last_run": "2025-08-15T21:27:05Z",
+  "monitor_last_run": "2025-08-15T22:32:49Z",
   "monitor_result": "failure",
   "monitor_targets": "self-check",
-  "monitor_run_url": "https://github.com/papemat/TokIntel/actions/runs/16999694120"
+  "monitor_run_url": "https://github.com/papemat/TokIntel/actions/runs/17000642375"
 }
