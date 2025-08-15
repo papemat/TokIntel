@@ -767,3 +767,22 @@ dev-ready: ## Mostra env, esegue test-fast e avvia dashboard con log live
 	@$(MAKE) test-fast || python -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py || true
 	@echo "== 🚀 Avvio dashboard con log live =="
 	LOG_LEVEL=INFO $(MAKE) start-logs
+
+.PHONY: dev-stop
+dev-stop: ## Termina dashboard e processi TokIntel
+	@echo "== 🛑 Stop dashboard e processi TokIntel =="
+	@# kill by streamlit entry (macOS/Linux)
+	@pkill -f "streamlit run dash/app.py" 2>/dev/null || true
+	@pkill -f "python.*dash/app.py" 2>/dev/null || true
+	@# fallback: chiudi qualsiasi streamlit residuo
+	@pkill -f "streamlit" 2>/dev/null || true
+	@# fallback ulteriore: libera la porta 8501 se occupata (macOS/Linux)
+	@lsof -ti tcp:8501 2>/dev/null | xargs -r kill -9 2>/dev/null || true
+	@echo "✅ Processi terminati (se presenti)"
+
+.PHONY: dev-reset
+dev-reset: ## Svuota log e mostra env (pronto per nuovo ciclo)
+	@echo "== ♻️ TokIntel Dev Reset =="
+	@$(MAKE) logs-clear || true
+	@$(MAKE) env-show || true
+	@echo "✅ Reset completato"
