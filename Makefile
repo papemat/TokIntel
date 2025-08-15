@@ -798,31 +798,9 @@ dev-restart: ## Stop + Ready in un colpo solo (restart completo)
 	@echo "✅ Restart completato"
 
 .PHONY: dev-watch
-dev-watch: ## Watch file changes and auto-restart (requires fswatch or inotify-tools)
-	@echo "== 👁️  TokIntel Dev Watch =="
-	@echo "📁 Monitora: dash/, analyzer/, collector/, utils/"
-	@echo "🎯 Target: dev-restart"
-	@echo "⏱️  Intervallo: 1 secondo"
-	@echo "🛑 Premi Ctrl+C per fermare"
-	@echo ""
-	@if command -v fswatch >/dev/null 2>&1; then \
-		echo "✅ Usando fswatch (macOS)"; \
-		fswatch -o dash/ analyzer/ collector/ utils/ | while read f; do \
-			echo "🔄 File modificato, restart automatico..."; \
-			$(MAKE) dev-restart; \
-		done; \
-	elif command -v inotifywait >/dev/null 2>&1; then \
-		echo "✅ Usando inotifywait (Linux)"; \
-		while inotifywait -r -e modify,create,delete dash/ analyzer/ collector/ utils/ 2>/dev/null; do \
-			echo "🔄 File modificato, restart automatico..."; \
-			$(MAKE) dev-restart; \
-		done; \
-	else \
-		echo "❌ Nessun file watcher trovato"; \
-		echo "💡 Installa fswatch (macOS): brew install fswatch"; \
-		echo "💡 Installa inotify-tools (Linux): sudo apt install inotify-tools"; \
-		exit 1; \
-	fi
+dev-watch: ## Watch file changes e rilancia dev-restart (auto)
+	@echo "== 👀 TokIntel Dev Watch (PORT=$${PORT:-8501}) =="
+	@./scripts/dev_watch.sh
 
 .PHONY: dev-status
 dev-status: ## Mostra stato attuale della dashboard e variabili env

@@ -77,16 +77,15 @@ make tokintel-gui-bg
 make tokintel-gui-stop
 ```
 
-### 👁️ **Watch Mode (Auto-restart)**
+### 🔁 **Hot reload: dev-watch**
+Avvia un watcher che riavvia automaticamente la dashboard quando cambiano i file:
 
 ```bash
-# Watch file changes e auto-restart
-make dev-watch
-
-# Prerequisiti:
-# macOS: brew install fswatch
-# Linux: sudo apt install inotify-tools
+make dev-watch                 # usa PORT=8501
+make dev-watch PORT=8502       # porta alternativa
 ```
+
+Il watcher prova in ordine: `watchexec` → `entr` → `fswatch` → `inotifywait` → `python watchdog` → fallback polling.
 
 ### 📊 **Performance e Monitoraggio**
 

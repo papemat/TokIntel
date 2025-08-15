@@ -33,3 +33,5 @@ pathlib
 
 # Testing (pinned for CI stability)
 pytest==8.*
+
+# (opz) pip extra: watchdog per watcher python

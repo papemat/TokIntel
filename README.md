@@ -98,7 +98,20 @@ ports:
 
 Apri `http://localhost:9000` (anche da altri device in LAN).
 
-### Dev live-reload
+### 🔁 Sviluppo con hot reload
+
+Per riavvio automatico alla modifica dei file:
+
+```bash
+make dev-watch
+# oppure con porta custom
+make dev-watch PORT=8502
+```
+
+Il watcher userà il miglior backend disponibile (watchexec/entr/fswatch/inotifywait/py‑watchdog) e, in ultima istanza, farà polling.
+Ad ogni modifica rilevante (py/md/yml/yaml/toml/sh/Makefile) lancia **`make dev-restart`**.
+
+#### Docker live-reload
 
 Il compose monta la repo locale come volume:
 
