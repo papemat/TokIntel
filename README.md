@@ -33,11 +33,11 @@
 
 | Timestamp | Esito | Targets | Dettagli |
 |---|---|---|---|
+| 2025-08-15 20:33:25 UTC | 🔴 failure | `self-check` | [run](https://github.com/papemat/TokIntel/actions/runs/16998797918) |
 | 2025-08-15 19:25:58 UTC | 🔴 failure | `self-check` | [run](https://github.com/papemat/TokIntel/actions/runs/16997638226) |
 | 2025-08-15 18:44:05 UTC | 🔴 failure | `self-check` | [run](https://github.com/papemat/TokIntel/actions/runs/16996875002) |
 | 2025-08-15 17:30:31 UTC | 🔴 failure | `self-check` | [run](https://github.com/papemat/TokIntel/actions/runs/16995536679) |
 | 2025-08-15 16:38:04 UTC | 🔴 failure | `self-check` | [run](https://github.com/papemat/TokIntel/actions/runs/16994574331) |
-| 2025-08-15 15:32:33 UTC | 🔴 failure | `self-check` | [run](https://github.com/papemat/TokIntel/actions/runs/16993350312) |
 
 <!-- MONITOR_STATUS:END -->
 
