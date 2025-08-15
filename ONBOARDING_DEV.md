@@ -25,6 +25,9 @@ make dev-reset
 
 # Restart completo (stop + ready)
 make dev-restart
+
+# Watch file changes e auto-restart
+make dev-watch
 ```
 
 ### 🧪 **Testing**
@@ -72,6 +75,17 @@ make tokintel-gui-bg
 
 # Ferma dashboard in background
 make tokintel-gui-stop
+```
+
+### 👁️ **Watch Mode (Auto-restart)**
+
+```bash
+# Watch file changes e auto-restart
+make dev-watch
+
+# Prerequisiti:
+# macOS: brew install fswatch
+# Linux: sudo apt install inotify-tools
 ```
 
 ### 📊 **Performance e Monitoraggio**
