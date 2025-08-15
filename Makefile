@@ -797,8 +797,8 @@ dev-status: ## Mostra stato attuale della dashboard e variabili env
 		if lsof -i :$(PORT) -sTCP:LISTEN >/dev/null 2>&1; then \
 			echo "✅ Dashboard attiva su http://localhost:$(PORT)"; \
 			lsof -i :$(PORT) -sTCP:LISTEN | awk 'NR==1 || /python/ || /streamlit/'; \
-			@echo "== 🔍 Health check HTTP =="; \
-			@if command -v curl >/dev/null 2>&1; then \
+			echo "== 🔍 Health check HTTP =="; \
+			if command -v curl >/dev/null 2>&1; then \
 				if curl -s -f http://localhost:$(PORT) >/dev/null 2>&1; then \
 					echo "✅ HTTP OK - Dashboard risponde"; \
 				else \
