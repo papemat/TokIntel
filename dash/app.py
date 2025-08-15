@@ -10,11 +10,20 @@ from pathlib import Path
 if st.query_params.get("health") == "1":
     st.write("OK"); st.stop()
 
-def _tail_file(path: Path, n: int = 200) -> str:
+def _tail_file(path: Path, n: int = 200, level_filter: str = "ALL") -> str:
     try:
         data = path.read_bytes()
         lines = data.splitlines()[-n:]
-        return b"\n".join(lines).decode("utf-8", "ignore")
+        decoded_lines = [b"\n".join(lines).decode("utf-8", "ignore")]
+        
+        if level_filter != "ALL":
+            filtered_lines = []
+            for line in decoded_lines[0].split('\n'):
+                if level_filter in line or not any(level in line for level in ["[INFO]", "[WARNING]", "[ERROR]", "[DEBUG]"]):
+                    filtered_lines.append(line)
+            return '\n'.join(filtered_lines)
+        
+        return decoded_lines[0]
     except FileNotFoundError:
         return "Log file non ancora creato… avvia un ingest per generarlo."
 
@@ -762,7 +771,7 @@ def main():
             from utils.logging_setup import LOG_DIR, INGEST_LOG
             
             with st.expander("📜 Ingest Logs", expanded=False):
-                cols = st.columns([2,1,1,1])
+                cols = st.columns([2,1,1,1,1])
                 with cols[0]:
                     st.caption(f"File: `{INGEST_LOG}`")
                 with cols[1]:
@@ -770,6 +779,8 @@ def main():
                 with cols[2]:
                     n_lines = st.number_input("Linee", min_value=50, max_value=2000, value=300, step=50, key="ingest_lines")
                 with cols[3]:
+                    level_filter = st.selectbox("Livello", ["ALL", "INFO", "WARNING", "ERROR"], key="ingest_level_filter")
+                with cols[4]:
                     if st.button("Svuota log", type="secondary"):
                         try:
                             INGEST_LOG.write_text("")
@@ -780,7 +791,7 @@ def main():
                 if auto:
                     st.autorefresh(interval=2000, key="ingestlog_refresh")
 
-                st.code(_tail_file(INGEST_LOG, int(n_lines)), language="log")
+                st.code(_tail_file(INGEST_LOG, int(n_lines), level_filter), language="log")
 
                 # Download
                 try:

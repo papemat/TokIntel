@@ -687,3 +687,6 @@ logs-tail: ## Tail veloce dei log ingest
 logs-open: ## Apri il file log nel default editor
 	@python3 -c "from pathlib import Path; p=Path.home()/'.tokintel'/'logs'/'ingest.log'; print(p)"
 	@open $$HOME/.tokintel/logs/ingest.log 2>/dev/null || true
+
+logs-debug: ## Test logging con livello DEBUG
+	@LOG_LEVEL=DEBUG python3 -c "from utils.logging_setup import setup_logging; import logging; setup_logging(); log = logging.getLogger('tokintel.ingest'); log.debug('Test DEBUG via Makefile'); print('✅ DEBUG test completato')"
