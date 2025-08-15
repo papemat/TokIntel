@@ -42,22 +42,16 @@ def colorize_durations(line: str) -> str:
     m = re.search(r"durata: ([0-9.]+)s", line)
     if m:
         secs = float(m.group(1))
-        if secs > 60:
-            return f":red[{line}]"  # Rosso per step > 60s
-        elif secs > 30:
-            return f":orange[{line}]"  # Arancione per step > 30s
-        else:
-            return f":green[{line}]"  # Verde per step < 30s
+        color = color_for_duration(secs)
+        return f":{color}[{line}]"
     
     # Pattern per tempo totale dell'ingest
     if "🏁 Ingest completato in" in line:
         total_match = re.search(r"([0-9.]+)s totali", line)
         if total_match:
             total_secs = float(total_match.group(1))
-            if total_secs < 60:
-                return f":blue-background[{line}]"  # Sfondo blu per ingest veloce
-            else:
-                return f":red-background[{line}]"  # Sfondo rosso per ingest lento
+            color = color_for_duration(total_secs)
+            return f":{color}-background[{line}]"
     
     # Pattern per step che iniziano
     if "⏳ Iniziando:" in line:
@@ -90,6 +84,7 @@ import os
 import time
 import platform
 import re
+from utils.timing_config import FAST, SLOW, color_for_duration
 
 # Feature Flags via environment variables
 FF_DISABLE_CACHE = os.getenv("FF_DISABLE_CACHE", "0") == "1"
@@ -926,12 +921,8 @@ def main():
                             min_duration = min(durations)
                             
                             # Colora in base alla durata media
-                            if avg_duration > 60:
-                                color = "🔴"
-                            elif avg_duration > 30:
-                                color = "🟠"
-                            else:
-                                color = "🟢"
+                            color_map = {"green": "🟢", "orange": "🟠", "red": "🔴"}
+                            color = color_map.get(color_for_duration(avg_duration), "🟢")
                             
                             st.metric(
                                 f"{color} {step_name}",
@@ -942,14 +933,40 @@ def main():
                     if total_durations:
                         avg_total = sum(total_durations) / len(total_durations)
                         st.subheader("⏱️ Tempo totale medio")
-                        if avg_total < 60:
-                            st.success(f"🟢 {avg_total:.1f} secondi (veloce)")
-                        elif avg_total < 300:
-                            st.info(f"🟡 {avg_total:.1f} secondi (normale)")
+                        color_map = {"green": "🟢", "orange": "🟠", "red": "🔴"}
+                        color = color_map.get(color_for_duration(avg_total), "🟢")
+                        
+                        if avg_total < FAST:
+                            st.success(f"{color} {avg_total:.1f} secondi (veloce)")
+                        elif avg_total < SLOW:
+                            st.info(f"{color} {avg_total:.1f} secondi (normale)")
                         else:
-                            st.warning(f"🔴 {avg_total:.1f} secondi (lento)")
+                            st.warning(f"{color} {avg_total:.1f} secondi (lento)")
                         
                         st.caption(f"Basato su {len(total_durations)} ingest completati")
+                        
+                        # Export CSV delle durate per step
+                        if step_durations:
+                            import io
+                            df_stats = []
+                            for step_name, durations in step_durations.items():
+                                df_stats.append({
+                                    "step": step_name,
+                                    "avg": sum(durations) / len(durations),
+                                    "min": min(durations),
+                                    "max": max(durations),
+                                    "runs": len(durations)
+                                })
+                            
+                            df_export = pd.DataFrame(df_stats)
+                            csv_buf = io.StringIO()
+                            df_export.to_csv(csv_buf, index=False)
+                            st.download_button(
+                                label="⬇️ Esporta durate per step (CSV)",
+                                data=csv_buf.getvalue().encode("utf-8"),
+                                file_name="tokintel_step_durations.csv",
+                                mime="text/csv",
+                            )
                 else:
                     st.info("Avvia un ingest per vedere le statistiche")
             except Exception as e:
