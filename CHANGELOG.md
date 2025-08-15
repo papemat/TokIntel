@@ -1,3 +1,16 @@
+## [1.1.4] — 2025-08-15
+
+### Added
+
+* Ingest Logs Panel avanzato con auto-refresh, filtro livelli, download/svuota, rotating logs.
+* Sistema di timing per step e totale con colorazione soglie e pattern strutturati.
+* Make targets: `test-timing`, `timing-demo`, `logs-tail`, `logs-open`, `logs-debug`.
+
+### Config
+
+* Variabile `LOG_LEVEL` e bootstrap macOS (`mac-bootstrap`, `mac-venv-rebuild`).
+
+
 # Changelog - TokIntel
 
 ## [1.1.4] — 2025-08-15
