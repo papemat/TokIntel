@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log run-lan run-debug quickstart-check release-test release-dry release notes docker-build docker-up docker-down test-timing timing-demo
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log run-lan run-debug quickstart-check release-test release-dry release release-v1.1.4 notes docker-build docker-up docker-down test-timing timing-demo
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -654,6 +654,11 @@ release:
 	@git tag -a v$${VER} -m "TokIntel v$${VER}" || true
 	@git push origin v$${VER} || true
 	@echo "👉 Now run: gh release create v$${VER} --title \"TokIntel v$${VER}\" --notes-file RELEASE_NOTES_v$${VER}.md"
+
+release-v1.1.4: ## One-shot release v1.1.4 (idempotent)
+	@echo "== TokIntel Release v1.1.4 — one-shot =="
+	VER=1.1.4 ./release_v1.1.4.sh
+	@echo "✅ Release v1.1.4 completata"
 
 notes:
 	@python3 scripts/gen_release_notes.py v1.1.1
