@@ -5,7 +5,7 @@ WORKDIR /app
 
 # dipendenze di sistema utili (curl per healthcheck, build deps minime)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl build-essential && \
+    curl build-essential ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
 # copia requirements se esiste e installa

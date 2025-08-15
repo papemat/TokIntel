@@ -8,6 +8,8 @@ pandas==2.2.*
 # Audio processing
 openai-whisper
 ffmpeg-python
+yt-dlp
+librosa
 
 # Visual processing
 opencv-python-headless

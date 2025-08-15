@@ -27,6 +27,52 @@ def _tail_file(path: Path, n: int = 200, level_filter: str = "ALL") -> str:
     except FileNotFoundError:
         return "Log file non ancora creato… avvia un ingest per generarlo."
 
+
+def colorize_durations(line: str) -> str:
+    """
+    Colora le righe del log in base alle durate degli step.
+    
+    Args:
+        line: Riga del log da colorare
+        
+    Returns:
+        Riga colorata con markup Streamlit
+    """
+    # Pattern per durate degli step individuali
+    m = re.search(r"durata: ([0-9.]+)s", line)
+    if m:
+        secs = float(m.group(1))
+        if secs > 60:
+            return f":red[{line}]"  # Rosso per step > 60s
+        elif secs > 30:
+            return f":orange[{line}]"  # Arancione per step > 30s
+        else:
+            return f":green[{line}]"  # Verde per step < 30s
+    
+    # Pattern per tempo totale dell'ingest
+    if "🏁 Ingest completato in" in line:
+        total_match = re.search(r"([0-9.]+)s totali", line)
+        if total_match:
+            total_secs = float(total_match.group(1))
+            if total_secs < 60:
+                return f":blue-background[{line}]"  # Sfondo blu per ingest veloce
+            else:
+                return f":red-background[{line}]"  # Sfondo rosso per ingest lento
+    
+    # Pattern per step che iniziano
+    if "⏳ Iniziando:" in line:
+        return f":blue[{line}]"  # Blu per step che iniziano
+    
+    # Pattern per step completati
+    if "✅ Completato:" in line:
+        return f":green[{line}]"  # Verde per step completati
+    
+    # Pattern per ingest avviato
+    if "🚀 Ingest avviato" in line:
+        return f":blue-background[{line}]"  # Sfondo blu per avvio ingest
+    
+    return line
+
 import yaml
 import json
 import pathlib
@@ -43,6 +89,7 @@ from collections import Counter
 import os
 import time
 import platform
+import re
 
 # Feature Flags via environment variables
 FF_DISABLE_CACHE = os.getenv("FF_DISABLE_CACHE", "0") == "1"
@@ -138,6 +185,10 @@ from analyzer.search_multimodal import search_text, search_visual, combine_resul
 from analyzer.vision_clip import image_paths_to_embeddings, device_from_pref
 from analyzer.index_faiss import build_text_index
 from analyzer.build_visual_index import build_index
+
+# Setup logging system
+from utils.logging_setup import setup_logging
+setup_logging()
 
 # Diagnostics helper
 def db_info(path="data/db.sqlite"):
@@ -768,12 +819,16 @@ def main():
     # Ingest Logs Panel
     with st.sidebar:
         try:
-            from utils.logging_setup import LOG_DIR, INGEST_LOG
+            from pathlib import Path
+            from utils.logging_setup import setup_logging
+            
+            # Get log file path
+            log_file = Path.home() / ".tokintel" / "logs" / "ingest.log"
             
             with st.expander("📜 Ingest Logs", expanded=False):
                 cols = st.columns([2,1,1,1,1])
                 with cols[0]:
-                    st.caption(f"File: `{INGEST_LOG}`")
+                    st.caption(f"File: `{log_file}`")
                 with cols[1]:
                     auto = st.checkbox("Auto‑refresh", value=True, key="ingest_auto_refresh")
                 with cols[2]:
@@ -783,29 +838,122 @@ def main():
                 with cols[4]:
                     if st.button("Svuota log", type="secondary"):
                         try:
-                            INGEST_LOG.write_text("")
+                            log_file.write_text("")
                             st.success("Log svuotato.")
                         except FileNotFoundError:
                             st.info("Log non ancora creato.")
 
                 if auto:
-                    st.autorefresh(interval=2000, key="ingestlog_refresh")
+                    # Auto-refresh usando JavaScript
+                    st.markdown("""
+                    <script>
+                    setTimeout(function(){
+                        window.location.reload();
+                    }, 5000);
+                    </script>
+                    """, unsafe_allow_html=True)
 
-                st.code(_tail_file(INGEST_LOG, int(n_lines), level_filter), language="log")
+                # Ottieni le righe del log e applica colorazione
+                log_content = _tail_file(log_file, int(n_lines), level_filter)
+                log_lines = log_content.splitlines()
+                colored_lines = [colorize_durations(line) for line in log_lines]
+                
+                # Mostra il log colorato
+                st.code("\n".join(colored_lines), language="log")
+                
+                # Mostra statistiche se disponibili
+                if log_lines:
+                    last_line = log_lines[-1]
+                    if "🏁 Ingest completato in" in last_line:
+                        total_match = re.search(r"([0-9.]+)s totali", last_line)
+                        if total_match:
+                            total_secs = float(total_match.group(1))
+                            if total_secs < 60:
+                                st.success(f"✅ Ingest completato in {total_secs:.1f} secondi")
+                            else:
+                                st.warning(f"⚠️ Ingest completato in {total_secs:.1f} secondi (lento)")
 
                 # Download
                 try:
-                    st.download_button(
-                        "Scarica ingest.log",
-                        data=INGEST_LOG.read_bytes(),
-                        file_name="ingest.log",
-                        mime="text/plain",
-                        type="secondary",
-                    )
-                except FileNotFoundError:
-                    st.caption("Scarica disponibile dopo il primo ingest.")
+                    if log_file.exists():
+                        st.download_button(
+                            "Scarica ingest.log",
+                            data=log_file.read_bytes(),
+                            file_name="ingest.log",
+                            mime="text/plain",
+                            type="secondary",
+                        )
+                    else:
+                        st.caption("Scarica disponibile dopo il primo ingest.")
+                except Exception:
+                    st.caption("Errore nel download del log.")
         except ImportError:
             st.caption("📜 Logs: installa utils/logging_setup.py")
+        
+        # Statistiche Ingest
+        with st.expander("📊 Statistiche Ingest", expanded=False):
+            try:
+                if log_file.exists():
+                    # Analizza gli ultimi N ingest per statistiche
+                    log_content = log_file.read_text()
+                    log_lines = log_content.splitlines()
+                    
+                    # Trova tutti i pattern di durata
+                    step_durations = {}
+                    total_durations = []
+                    
+                    for line in log_lines:
+                        # Durate step individuali
+                        step_match = re.search(r"✅ Completato: (.+?) \(durata: ([0-9.]+)s\)", line)
+                        if step_match:
+                            step_name = step_match.group(1)
+                            duration = float(step_match.group(2))
+                            if step_name not in step_durations:
+                                step_durations[step_name] = []
+                            step_durations[step_name].append(duration)
+                        
+                        # Tempi totali
+                        total_match = re.search(r"🏁 Ingest completato in ([0-9.]+)s totali", line)
+                        if total_match:
+                            total_durations.append(float(total_match.group(1)))
+                    
+                    # Mostra statistiche
+                    if step_durations:
+                        st.subheader("📈 Durate medie per step")
+                        for step_name, durations in step_durations.items():
+                            avg_duration = sum(durations) / len(durations)
+                            max_duration = max(durations)
+                            min_duration = min(durations)
+                            
+                            # Colora in base alla durata media
+                            if avg_duration > 60:
+                                color = "🔴"
+                            elif avg_duration > 30:
+                                color = "🟠"
+                            else:
+                                color = "🟢"
+                            
+                            st.metric(
+                                f"{color} {step_name}",
+                                f"{avg_duration:.1f}s",
+                                f"min: {min_duration:.1f}s, max: {max_duration:.1f}s"
+                            )
+                    
+                    if total_durations:
+                        avg_total = sum(total_durations) / len(total_durations)
+                        st.subheader("⏱️ Tempo totale medio")
+                        if avg_total < 60:
+                            st.success(f"🟢 {avg_total:.1f} secondi (veloce)")
+                        elif avg_total < 300:
+                            st.info(f"🟡 {avg_total:.1f} secondi (normale)")
+                        else:
+                            st.warning(f"🔴 {avg_total:.1f} secondi (lento)")
+                        
+                        st.caption(f"Basato su {len(total_durations)} ingest completati")
+                else:
+                    st.info("Avvia un ingest per vedere le statistiche")
+            except Exception as e:
+                st.caption(f"Errore nel calcolo statistiche: {e}")
     
     # Tabs
     tab1, tab2, tab3 = st.tabs(["🔍 Ricerca Testuale", "🖼️ Ricerca da Immagine", "⚙️ Gestione Indici"])

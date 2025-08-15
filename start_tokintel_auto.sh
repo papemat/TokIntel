@@ -119,10 +119,14 @@ fi
 # ========== VENV mode ==========
 echo "🐍 Avvio via Python venv…"
 
-# Ensure venv
+# Ensure venv (prefer python3.11 from Homebrew if available)
 if [ ! -d ".venv" ]; then
   echo "📦 Creo virtualenv…"
-  python3 -m venv .venv
+  if [ -x "/opt/homebrew/bin/python3.11" ]; then
+    /opt/homebrew/bin/python3.11 -m venv .venv
+  else
+    python3 -m venv .venv
+  fi
 fi
 # Activate venv
 # shellcheck disable=SC1091
@@ -132,7 +136,9 @@ source .venv/bin/activate
 if [ ! -f ".venv/.deps_ok" ] || [ "requirements.txt" -nt ".venv/.deps_ok" ]; then
   echo "📦 Installo dipendenze…"
   pip install --upgrade pip >/dev/null
-  pip install -r requirements.txt
+  if [ -f "requirements.txt" ]; then pip install -r requirements.txt; fi
+  # tools necessari all'ingest
+  pip install yt-dlp librosa
   touch .venv/.deps_ok
 fi
 

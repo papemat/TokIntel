@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log run-lan run-debug quickstart-check release-test release-dry release notes docker-build docker-up docker-down
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log run-lan run-debug quickstart-check release-test release-dry release notes docker-build docker-up docker-down test-timing timing-demo
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -682,11 +682,52 @@ stop: ## Stop rapido (docker/down o kill porta)
 	./start_tokintel_auto.sh --stop
 
 logs-tail: ## Tail veloce dei log ingest
-	@tail -f $$HOME/.tokintel/logs/ingest.log || echo "Nessun log ancora creato."
+	@tail -f ~/.tokintel/logs/ingest.log || echo "Nessun log ancora creato."
 
 logs-open: ## Apri il file log nel default editor
-	@python3 -c "from pathlib import Path; p=Path.home()/'.tokintel'/'logs'/'ingest.log'; print(p)"
-	@open $$HOME/.tokintel/logs/ingest.log 2>/dev/null || true
+	@open ~/.tokintel/logs/ingest.log 2>/dev/null || true
 
-logs-debug: ## Test logging con livello DEBUG
-	@LOG_LEVEL=DEBUG python3 -c "from utils.logging_setup import setup_logging; import logging; setup_logging(); log = logging.getLogger('tokintel.ingest'); log.debug('Test DEBUG via Makefile'); print('✅ DEBUG test completato')"
+logs-debug: ## Avvia con livello DEBUG
+	LOG_LEVEL=DEBUG $(MAKE) start
+
+# =========================
+# macOS bootstrap & venv helpers
+# =========================
+.PHONY: mac-bootstrap mac-venv-rebuild
+
+mac-bootstrap: ## Installa dipendenze di sistema (Homebrew) e strumenti richiesti
+	@which brew >/dev/null 2>&1 || (echo "❌ Homebrew non trovato. Installa da https://brew.sh" && exit 1)
+	brew update
+	brew install ffmpeg yt-dlp python@3.11
+	@# Assicura PATH di Homebrew (Apple Silicon)
+	@if [ -d "/opt/homebrew/bin" ]; then \
+	  grep -q '/opt/homebrew/bin' $$HOME/.zshrc || echo 'export PATH="/opt/homebrew/bin:$$PATH"' >> $$HOME/.zshrc ; \
+	  . $$HOME/.zshrc >/dev/null 2>&1 || true ; \
+	fi
+	@echo "✅ mac-bootstrap completato"
+
+mac-venv-rebuild: ## Ricrea venv con Python 3.11 (Homebrew)
+	@PY=$$(/opt/homebrew/bin/python3.11 2>/dev/null || which python3); \
+	test -n "$$PY" || (echo "❌ python3 non trovato" && exit 1); \
+	echo "Using $$PY"; \
+	rm -rf .venv && $$PY -m venv .venv && . .venv/bin/activate && \
+	pip install --upgrade pip && \
+	( test -f requirements.txt && pip install -r requirements.txt || true ) && \
+	pip install yt-dlp librosa && \
+	touch .venv/.deps_ok && echo "✅ venv ricreato con Python 3.11 (se disponibile)"
+
+# =========================
+# Timing System Targets
+# =========================
+.PHONY: test-timing timing-demo
+
+test-timing: ## Test unitari del sistema di timing
+	@echo "🧪 Test Sistema Timing..."
+	.venv/bin/python -m pytest tests/test_timing_system.py -v
+	@echo "✅ Test timing completati"
+
+timing-demo: ## Demo del sistema di timing (simulazione ingest)
+	@echo "🎬 Demo Sistema Timing..."
+	.venv/bin/python scripts/test_timing_demo.py
+	@echo "✅ Demo timing completata"
+	@echo "📊 Controlla i log per vedere le durate colorate nella dashboard"

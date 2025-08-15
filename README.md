@@ -119,6 +119,20 @@ Questa sezione ti guida ad avviare TokIntel su macOS usando lo script **start_to
 
 ---
 
+### 🍎 macOS Bootstrap (Prima volta)
+
+Se è la prima volta su macOS, esegui il bootstrap per installare le dipendenze di sistema:
+
+```bash
+# Installa ffmpeg, yt-dlp, python@3.11 via Homebrew
+make mac-bootstrap
+
+# Ricrea venv con Python 3.11 e dipendenze ingest
+make mac-venv-rebuild
+```
+
+---
+
 ### 1️⃣ Avvio Smart
 Sceglie automaticamente Docker (se disponibile) o virtualenv Python.
 ```bash
@@ -168,7 +182,13 @@ Oppure la porta scelta (es. `http://localhost:8600`).
 
 ---
 
-### 5️⃣ Alias opzionali (per avvio da qualsiasi directory)
+### 5️⃣ Troubleshooting
+
+Se vedi warning Streamlit deprecati, consulta: [STREAMLIT_DEPRECATIONS.md](STREAMLIT_DEPRECATIONS.md)
+
+---
+
+### 6️⃣ Alias opzionali (per avvio da qualsiasi directory)
 Aggiungi a `~/.zshrc`:
 ```bash
 alias tokintel-start="cd ~/Documents/TokIntel && ./start_tokintel_auto.sh"

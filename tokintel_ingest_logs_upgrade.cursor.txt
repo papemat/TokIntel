@@ -1,0 +1,92 @@
+# 🎯 Obiettivo
+Implementare nel progetto TokIntel un sistema completo di logging ingest con:
+- Logging rotante su `~/.tokintel/logs/ingest.log`
+- Pannello "📜 Ingest Logs" nella dashboard Streamlit
+- Auto-refresh, download, pulsante svuota log
+- Filtro livello log (ALL/INFO/WARNING/ERROR)
+- Supporto variabile d'ambiente LOG_LEVEL (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+- Target Makefile per gestione log: `logs-tail`, `logs-open`, `logs-debug`
+- Volume Docker per persistenza log
+
+---
+
+## 🛠 Modifiche richieste
+
+### 1️⃣ utils/logging_setup.py
+- Creare file con configurazione `logging` usando `RotatingFileHandler`
+- Percorso log: `~/.tokintel/logs/ingest.log`
+- Rotazione: max 2MB, 3 backup
+- Lettura variabile `LOG_LEVEL` per impostare il livello
+- Funzione `setup_logging()` da importare in ingest
+
+### 2️⃣ dash/app.py
+- Importare `setup_logging` all'avvio
+- Aggiungere pannello "📜 Ingest Logs" nella sidebar dopo sezione ingest
+  - Input numero linee (50–2000)
+  - Selectbox livello log (ALL/INFO/WARNING/ERROR)
+  - Checkbox auto-refresh
+  - Pulsante "Svuota log" → svuota file
+  - Bottone download file log
+  - Area testo con ultimi N log filtrati
+- Usare `st_autorefresh` per aggiornamento automatico
+
+### 3️⃣ docker-compose.yml
+- Aggiungere volume persistente:
+```yaml
+volumes:
+  - tokintel_logs:/root/.tokintel/logs
+```
+- Definire volume in fondo:
+```yaml
+volumes:
+  tokintel_logs:
+```
+
+### 4️⃣ Makefile
+- Aggiungere target:
+```makefile
+logs-tail:
+	tail -f ~/.tokintel/logs/ingest.log
+
+logs-open:
+	open ~/.tokintel/logs/ingest.log
+
+logs-debug:
+	LOG_LEVEL=DEBUG $(MAKE) start
+```
+
+### 5️⃣ Integrazione ingest
+- All'avvio dell'ingest (`ingest.py` o modulo equivalente), chiamare:
+```python
+from utils.logging_setup import setup_logging
+setup_logging()
+log = logging.getLogger('tokintel.ingest')
+log.info("Ingest avviato...")
+```
+
+---
+
+## ✅ Test richiesti (mini-smoke test)
+
+1. Avvio TokIntel:
+   ```bash
+   make stop && make start
+   ```
+2. Aprire dashboard → pannello "📜 Ingest Logs"
+3. Eseguire ingest e verificare log in tempo reale
+4. Test pulsante "Svuota log"
+5. Test `make logs-tail` e `make logs-debug`
+6. Verifica persistenza log tra riavvii container
+
+---
+
+## 📌 Note
+
+* Default livello log = INFO
+* Con `LOG_LEVEL=DEBUG make start` si attivano i log debug
+* Formato log: `%(asctime)s - %(name)s - %(levelname)s - %(message)s`
+* Assicurarsi che la directory `~/.tokintel/logs/` venga creata automaticamente
+* Il pannello log deve essere posizionato nella sidebar dopo la sezione ingest esistente
+* Usare `st_autorefresh` con intervallo di 5 secondi per l'auto-refresh
+* Il download del file log deve usare `st.download_button` con il contenuto del file
+* Il pulsante "Svuota log" deve aprire il file in modalità write e svuotarlo

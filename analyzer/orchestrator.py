@@ -1,6 +1,12 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable, Iterable, List, Dict, Any, Optional, Tuple
+import logging
+
+# Setup logging
+from utils.logging_setup import setup_logging
+setup_logging()
+log = logging.getLogger('tokintel.orchestrator')
 
 # Tipi base
 EmbeddingFn = Callable[[Iterable[Any]], List[List[float]]]
@@ -28,13 +34,16 @@ def build_index(
     Crea backend di indice e ritorna (index_backend, items_enriched)
     Richiede: ogni item deve avere almeno 'id' e 'text' o 'image'
     """
+    log.info(f"Building index for {len(items)} items, dim={dim}")
     if not items:
+        log.warning("No items provided for index building")
         return index_backend_factory(dim), []
 
     # Calcolo embedding (deterministici in test)
     text_sources = [it.get("text") for it in items]
     img_sources = [it.get("image") for it in items]
 
+    log.debug(f"Computing embeddings: {len(text_sources)} text, {len(img_sources)} images")
     text_embs = embedder_text(text_sources) if embedder_text else None
     img_embs = embedder_image(img_sources) if embedder_image else None
 

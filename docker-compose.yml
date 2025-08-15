@@ -12,5 +12,8 @@ services:
     volumes:
       - ./:/app
       - tokintel_logs:/root/.tokintel/logs
+    working_dir: /app
+    command: streamlit run dash/app.py --server.port 8501 --server.address 0.0.0.0
+
 volumes:
-  tokintel_logs: {}
+  tokintel_logs:
