@@ -750,16 +750,39 @@ timing-demo: ## Demo del sistema di timing (simulazione ingest)
 .PHONY: logs-clear
 logs-clear: ## Svuota i rotating logs di ingest
 	@[ -f $$HOME/.tokintel/logs/ingest.log ] && : > $$HOME/.tokintel/logs/ingest.log || true
+	@[ -f logs/ingest.log ] && : > logs/ingest.log || true
 	@echo "✅ ingest.log pulito"
 
 .PHONY: env-show
 env-show: ## Mostra variabili .env rilevanti
 	@echo "TIMING_FAST=$${TIMING_FAST:-30}"
 	@echo "TIMING_SLOW=$${TIMING_SLOW:-60}"
+	@echo "PORT=$${PORT:-8501}"
 
 .PHONY: test-fast
 test-fast: ## Pytest veloce su unit critiche (timing & export)
-	@python -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py
+	@python -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py || python3 -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py
+
+.PHONY: dev
+dev: ## Status; se non attiva, lancia dev-ready (autostart)
+	@echo "== 🛠️ TokIntel Dev =="
+	@$(MAKE) dev-status || true
+	@echo "== 🔁 Autostart check =="
+	@if command -v lsof >/dev/null 2>&1; then \
+		if lsof -i :$(PORT) -sTCP:LISTEN >/dev/null 2>&1; then \
+			echo "✅ Dashboard già attiva su http://localhost:$(PORT)"; \
+		else \
+			echo "🚀 Dashboard non attiva: lancio dev-ready..."; \
+			$(MAKE) dev-ready; \
+		fi; \
+	else \
+		if ps aux | grep -E 'streamlit|dash/app\.py' | grep -v grep >/dev/null; then \
+			echo "✅ Dashboard appare attiva (ps/grep)"; \
+		else \
+			echo "🚀 Dashboard non attiva: lancio dev-ready..."; \
+			$(MAKE) dev-ready; \
+		fi; \
+	fi
 
 .PHONY: dev-ready
 dev-ready: ## Mostra env, esegue test-fast e avvia dashboard con log live
@@ -777,8 +800,8 @@ dev-stop: ## Termina dashboard e processi TokIntel
 	@pkill -f "python.*dash/app.py" 2>/dev/null || true
 	@# fallback: chiudi qualsiasi streamlit residuo
 	@pkill -f "streamlit" 2>/dev/null || true
-	@# fallback ulteriore: libera la porta 8501 se occupata (macOS/Linux)
-	@lsof -ti tcp:8501 2>/dev/null | xargs -r kill -9 2>/dev/null || true
+	@# fallback ulteriore: libera la porta $(PORT) se occupata (macOS/Linux)
+	@lsof -ti tcp:$(PORT) 2>/dev/null | xargs -r kill -9 2>/dev/null || true
 	@echo "✅ Processi terminati (se presenti)"
 
 .PHONY: dev-reset
@@ -847,3 +870,10 @@ dev-open: ## Apre la dashboard su http://localhost:$(PORT) (macOS/Linux/WSL)
 	else \
 		echo "ℹ️ Apri manualmente: http://localhost:$(PORT)"; \
 	fi
+
+.PHONY: watch-install
+watch-install: ## Installa watcher consigliati (best-effort)
+	@command -v watchexec >/dev/null || (command -v brew >/dev/null && brew install watchexec) || true
+	@command -v entr >/dev/null || (command -v brew >/dev/null && brew install entr) || true
+	@command -v fswatch >/dev/null || (command -v brew >/dev/null && brew install fswatch) || true
+	@python3 -c "import watchdog" >/dev/null 2>&1 || pip install watchdog || true
