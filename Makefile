@@ -788,6 +788,15 @@ dev-reset: ## Svuota log e mostra env (pronto per nuovo ciclo)
 	@$(MAKE) env-show || true
 	@echo "✅ Reset completato"
 
+.PHONY: dev-restart
+dev-restart: ## Stop + Ready in un colpo solo (restart completo)
+	@echo "== 🔄 TokIntel Dev Restart =="
+	@$(MAKE) dev-stop || true
+	@echo "== ⏳ Attendo 2 secondi per cleanup... =="
+	@sleep 2 || true
+	@$(MAKE) dev-ready
+	@echo "✅ Restart completato"
+
 .PHONY: dev-status
 dev-status: ## Mostra stato attuale della dashboard e variabili env
 	@echo "== 📡 TokIntel Dev Status =="

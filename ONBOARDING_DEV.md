@@ -22,6 +22,9 @@ make dev-stop
 
 # Reset pulito (svuota log + mostra env)
 make dev-reset
+
+# Restart completo (stop + ready)
+make dev-restart
 ```
 
 ### 🧪 **Testing**
@@ -137,6 +140,11 @@ make github-auto-setup
    ```bash
    make dev-stop     # Ferma tutto
    make dev-reset    # Reset pulito
+   ```
+
+5. **Restart rapido:**
+   ```bash
+   make dev-restart  # Stop + Ready in un colpo
    ```
 
 ## 📝 **Note Utili**
