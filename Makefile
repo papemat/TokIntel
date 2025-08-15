@@ -6,7 +6,7 @@ NODE ?= npx
 COVERAGE_MIN ?= 40
 TI_PORT ?= 8510
 
-.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log
+.PHONY: setup install test clean demo multimodal-demo visual-index index-cpu index-gpu search help prod-check report-prod-sample pytest-safe ensure-reports ensure-db add-indexes perf-check github-auto-setup test-dashboard post-deploy-checklist deploy-full init lint run run-ui kill-port kill-port-windows kill-port-unix test-e2e-only lint-sprint3 coverage-sprint3 playwright-install ci-e2e-playwright export-health last-export e2e-run ci-screenshot ci-tutorial-gif ci-badges-preview badges-glow-all ci-visual-refresh docs-check e2e-smoke install-hooks docs-ready docs-fail monitor-ci monitor-log run-lan run-debug quickstart-check release-test release-dry release notes docker-build docker-up docker-down
 
 # Setup virtual environment
 setup: ## Crea virtual environment e installa dipendenze
@@ -617,3 +617,46 @@ tokintel-batch:
 	echo "📦 Batch TokIntel → IN='$(IN)'  OUT='exports/$$out.json'"; \
 	python3 analyzer/tiktok_collections.py --source "$(IN)" --export "exports/$$out.json"; \
 	echo "✅ Analisi completata → exports/$$out.json"
+
+# =========================
+# Finalization Pack Targets
+# =========================
+
+run:
+	./scripts/run_tokintel.sh --no-headless
+
+run-lan:
+	PORT?=8501
+	PORT=$(PORT) ./scripts/run_tokintel.sh --lan --no-headless
+
+run-debug:
+	./scripts/run_tokintel.sh --debug --no-headless --port 8502
+
+quickstart-check:
+	@test -f scripts/run_tokintel.sh
+	@test -f scripts/run_tokintel.bat
+	@./scripts/run_tokintel.sh --help >/dev/null
+	@echo "✅ Quickstart scripts OK"
+
+release-test:
+	@test -f CHANGELOG_QUICKSTART.md
+	@test -f scripts/release_after_merge.sh
+	@echo "✅ Release workflow files present"
+
+release-dry:
+	./scripts/release_after_merge.sh v1.1.1 --dry-run
+
+release:
+	./scripts/release_after_merge.sh v1.1.1
+
+notes:
+	@python3 scripts/gen_release_notes.py v1.1.1
+
+docker-build:
+	docker compose build
+
+docker-up:
+	docker compose up
+
+docker-down:
+	docker compose down

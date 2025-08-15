@@ -20,8 +20,9 @@
 [![Performance Dashboard](https://img.shields.io/badge/dashboard-perf--trends-orange?style=flat&logo=chart-line)](http://localhost:8502)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](#)
 [![Monitor Hourly](https://img.shields.io/github/actions/workflow/status/papemat/TokIntel/monitor-ci-hourly.yml?label=Monitor%20Hourly)](https://github.com/papemat/TokIntel/actions/workflows/monitor-ci-hourly.yml)
-[![Release](https://img.shields.io/github/actions/workflow/status/papemat/TokIntel/release-on-tag.yml?label=Release&branch=main)](https://github.com/papemat/TokIntel/actions/workflows/release-on-tag.yml)
-[![Latest Release](https://img.shields.io/github/v/release/papemat/TokIntel?label=Latest%20Release)](https://github.com/papemat/TokIntel/releases/latest)
+[![Release on Tag](https://github.com/papemat/TokIntel/actions/workflows/release-on-tag.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/release-on-tag.yml)
+[![Docker Smoke](https://github.com/papemat/TokIntel/actions/workflows/docker-smoke.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/docker-smoke.yml)
+[![Latest Release](https://img.shields.io/github/v/release/papemat/TokIntel?label=Latest%20Release&color=orange)](https://github.com/papemat/TokIntel/releases)
 
 ## 📈 Ultimi esiti monitor
 
@@ -76,6 +77,39 @@ Questa sezione mostra lo stato in tempo reale dei workflow CI/CD per TokIntel e 
 ```bash
 # 1. Setup ambiente
 make setup
+```
+
+## 🐳 Run with Docker
+
+### Quick start
+```bash
+docker compose up --build
+# then open http://localhost:8501
+```
+
+### Custom port / LAN
+
+Edit `docker-compose.yml`:
+
+```yaml
+ports:
+  - "9000:8501"   # host:container
+```
+
+Apri `http://localhost:9000` (anche da altri device in LAN).
+
+### Dev live-reload
+
+Il compose monta la repo locale come volume:
+
+```yaml
+volumes:
+  - ./:/app
+```
+
+Modifica i file localmente: Streamlit ricarica in automatico.
+
+> Nota: se l'utente non ha Docker, indirizzalo alla sezione Quickstart classica (venv + launcher).
 
 # 2. Demo multimodale (genera frame finti, OCR, indice visivo)
 make multimodal-demo
@@ -400,6 +434,16 @@ git add -A && git commit -m "chore: bootstrap CI/Visual after final polish" && g
 | Immagini non aggiornate | `make ci-visual-refresh` |
 | Docs Ready non cambia | `make docs-ready` + commit & push |
 | Hook non parte | `chmod +x .git/hooks/pre-commit` |
+
+---
+
+## 🆘 Supporto / Bug report
+
+Apri una Issue con:
+- OS (macOS/Linux/Windows) + versione Python o Docker
+- Comando usato (launcher o docker)
+- Output di `--debug` o log del container
+- Passi per riprodurre + screenshot (se utile)
 
 ---
 

@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  tokintel:
+    build: .
+    container_name: tokintel
+    ports:
+      - "8501:8501"
+    environment:
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_LOG_LEVEL=info
+    # per sviluppo live: monta la repo locale nel container
+    volumes:
+      - ./:/app
