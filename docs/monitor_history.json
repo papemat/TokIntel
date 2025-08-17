@@ -1,6 +1,14 @@
 {
   "runs": [
     {
+      "timestamp": "2025-08-17T17:28:41Z",
+      "result": "failure",
+      "targets": "self-check",
+      "event": "schedule",
+      "run_url": "https://github.com/papemat/TokIntel/actions/runs/17023852114",
+      "run_id": "17023852114"
+    },
+    {
       "timestamp": "2025-08-17T16:36:14Z",
       "result": "failure",
       "targets": "self-check",
@@ -151,14 +159,6 @@
       "event": "schedule",
       "run_url": "https://github.com/papemat/TokIntel/actions/runs/16988224975",
       "run_id": "16988224975"
-    },
-    {
-      "timestamp": "2025-08-15T09:52:37Z",
-      "result": "failure",
-      "targets": "self-check",
-      "event": "push",
-      "run_url": "https://github.com/papemat/TokIntel/actions/runs/16987557889",
-      "run_id": "16987557889"
     }
   ]
 }
