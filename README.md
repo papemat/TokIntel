@@ -5,6 +5,7 @@
   <a href="https://github.com/papemat/TokIntel/actions">
     <img src="https://img.shields.io/badge/CI-passing-brightgreen" alt="CI Status" />
   </a>
+  <img src="https://img.shields.io/badge/DX-Ready-🚀-brightgreen" alt="DX Ready" />
 </p>
 
 [![CI](https://github.com/papemat/TokIntel/actions/workflows/ci.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/ci.yml)
@@ -78,6 +79,31 @@ Questa sezione mostra lo stato in tempo reale dei workflow CI/CD per TokIntel e 
 # 1. Setup ambiente
 make setup
 ```
+
+## 🛠️ DX Setup (Developer Experience)
+
+TokIntel include un sistema DX completo per lo sviluppo:
+
+### Quick DX Commands
+```bash
+# Setup completo (idempotente)
+./scripts/dx_super_setup.sh
+
+# Sviluppo tipico
+make dev            # Avvia se non attivo
+make dev-watch      # Hot reload
+make dev-status     # Health check
+make dev-reset      # Reset per nuovo ciclo
+```
+
+### DX Features
+- ✅ **Multi-backend watcher** (watchexec, entr, fswatch, inotifywait, watchdog, polling)
+- ✅ **Health check automatico** (porta, processi, HTTP)
+- ✅ **CI/CD integrato** (fast-tests, post-merge hooks)
+- ✅ **Test veloci** (4 test critici)
+- ✅ **Documentazione completa** (DX_QUICKSTART.md, CHECKLIST.md)
+
+📖 **Guida completa**: [DX_QUICKSTART.md](DX_QUICKSTART.md) | [CHECKLIST.md](CHECKLIST.md)
 
 ## 🐳 Run with Docker
 
