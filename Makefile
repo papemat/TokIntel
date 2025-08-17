@@ -747,22 +747,55 @@ timing-demo: ## Demo del sistema di timing (simulazione ingest)
 	@echo "✅ Demo timing completata"
 	@echo "📊 Controlla i log per vedere le durate colorate nella dashboard"
 
-.PHONY: logs-clear
-logs-clear: ## Svuota i rotating logs di ingest
-	@[ -f $$HOME/.tokintel/logs/ingest.log ] && : > $$HOME/.tokintel/logs/ingest.log || true
-	@[ -f logs/ingest.log ] && : > logs/ingest.log || true
-	@echo "✅ ingest.log pulito"
 
-.PHONY: env-show
-env-show: ## Mostra variabili .env rilevanti
-	@echo "TIMING_FAST=$${TIMING_FAST:-30}"
-	@echo "TIMING_SLOW=$${TIMING_SLOW:-60}"
-	@echo "PORT=$${PORT:-8501}"
 
-.PHONY: test-fast
-test-fast: ## Pytest veloce su unit critiche (timing & export)
-	@python -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py || python3 -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py
+# --- TOKINTEL::DEV_OPEN START
+.PHONY: dev-open
+dev-open: ## Apre la dashboard su http://localhost:$(PORT)
+	@echo "== 🌐 http://localhost:$(PORT) =="
+	@if command -v open >/dev/null 2>&1; then \
+		open "http://localhost:$(PORT)"; \
+	elif command -v xdg-open >/dev/null 2>&1; then \
+		xdg-open "http://localhost:$(PORT)" >/dev/null 2>&1 || true; \
+	elif command -v cmd.exe >/dev/null 2>&1; then \
+		cmd.exe /c start http://localhost:$(PORT) || true; \
+	else \
+		echo "ℹ️ Apri manualmente: http://localhost:$(PORT)"; \
+	fi
+# --- TOKINTEL::DEV_OPEN END
 
+# --- TOKINTEL::DEV_STATUS START
+.PHONY: dev-status
+dev-status: ## Mostra stato dashboard (porta + health HTTP) e variabili env
+	@$(MAKE) env-show || true
+	@if command -v lsof >/dev/null 2>&1; then \
+		if lsof -i :$(PORT) -sTCP:LISTEN >/dev/null 2>&1; then \
+			echo "✅ Dashboard attiva su http://localhost:$(PORT)"; \
+		else \
+			echo "⚠️ Dashboard NON attiva sulla porta $(PORT)"; \
+		fi; \
+	else \
+		echo "ℹ️ lsof non disponibile: controllo base con ps/grep"; \
+		ps aux | grep -E 'streamlit|dash/app\.py' | grep -v grep || true; \
+	fi
+	@if command -v curl >/dev/null 2>&1; then \
+		if curl -s --max-time 2 "http://localhost:$(PORT)" | grep -qi "streamlit"; then \
+			echo "🩺 Health check: OK (contenuto atteso)"; \
+		else \
+			echo "⚠️ Health check: porta ok ma contenuto inatteso o app non pronta"; \
+		fi; \
+	elif command -v wget >/dev/null 2>&1; then \
+		if wget -qO- --timeout=2 "http://localhost:$(PORT)" | grep -qi "streamlit"; then \
+			echo "🩺 Health check: OK (contenuto atteso)"; \
+		else \
+			echo "⚠️ Health check: porta ok ma contenuto inatteso o app non pronta"; \
+		fi; \
+	else \
+		echo "ℹ️ curl/wget assenti: salto health check HTTP"; \
+	fi
+# --- TOKINTEL::DEV_STATUS END
+
+# --- TOKINTEL::DEV START
 .PHONY: dev
 dev: ## Status; se non attiva, lancia dev-ready (autostart)
 	@echo "== 🛠️ TokIntel Dev =="
@@ -783,123 +816,6 @@ dev: ## Status; se non attiva, lancia dev-ready (autostart)
 			$(MAKE) dev-ready; \
 		fi; \
 	fi
-
-.PHONY: dev-ready
-dev-ready: ## Mostra env, esegue test-fast e avvia dashboard con log live
-	@echo "== 🌱 TokIntel Dev Ready =="
-	@$(MAKE) env-show || true
-	@$(MAKE) test-fast || python -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py || true
-	@echo "== 🚀 Avvio dashboard con log live =="
-	LOG_LEVEL=INFO $(MAKE) start-logs
-
-.PHONY: dev-stop
-dev-stop: ## Termina dashboard e processi TokIntel
-	@echo "== 🛑 Stop dashboard e processi TokIntel =="
-	@# kill by streamlit entry (macOS/Linux)
-	@pkill -f "streamlit run dash/app.py" 2>/dev/null || true
-	@pkill -f "python.*dash/app.py" 2>/dev/null || true
-	@# fallback: chiudi qualsiasi streamlit residuo
-	@pkill -f "streamlit" 2>/dev/null || true
-	@# fallback ulteriore: libera la porta $(PORT) se occupata (macOS/Linux)
-	@lsof -ti tcp:$(PORT) 2>/dev/null | xargs -r kill -9 2>/dev/null || true
-	@echo "✅ Processi terminati (se presenti)"
-
-.PHONY: dev-reset
-dev-reset: ## Svuota log e mostra env (pronto per nuovo ciclo)
-	@echo "== ♻️ TokIntel Dev Reset =="
-	@$(MAKE) logs-clear || true
-	@$(MAKE) env-show || true
-	@echo "✅ Reset completato"
-
-.PHONY: dev-restart
-dev-restart: ## Stop + Ready in un colpo solo (restart completo)
-	@echo "== 🔄 TokIntel Dev Restart =="
-	@$(MAKE) dev-stop || true
-	@echo "== ⏳ Attendo 2 secondi per cleanup... =="
-	@sleep 2 || true
-	@$(MAKE) dev-ready
-	@echo "✅ Restart completato"
-
-.PHONY: dev-watch
-dev-watch: ## Watch file changes e rilancia dev-restart (auto)
-	@echo "== 👀 TokIntel Dev Watch (PORT=$${PORT:-8501}) =="
-	@./scripts/dev_watch.sh
-
-.PHONY: dev-status
-dev-status: ## Mostra stato attuale della dashboard e variabili env
-	@echo "== 📡 TokIntel Dev Status =="
-	@$(MAKE) env-show || true
-	@echo "== 🔍 Controllo processo Streamlit sulla porta $(PORT) =="
-	@if command -v lsof >/dev/null 2>&1; then \
-		if lsof -i :$(PORT) -sTCP:LISTEN >/dev/null 2>&1; then \
-			echo "✅ Dashboard attiva su http://localhost:$(PORT)"; \
-			lsof -i :$(PORT) -sTCP:LISTEN | awk 'NR==1 || /python/ || /streamlit/'; \
-			echo "== 🔍 Health check HTTP =="; \
-			if command -v curl >/dev/null 2>&1; then \
-				if curl -s -f http://localhost:$(PORT) >/dev/null 2>&1; then \
-					echo "✅ HTTP OK - Dashboard risponde"; \
-				else \
-					echo "⚠️  HTTP KO - Porta aperta ma dashboard non risponde"; \
-				fi; \
-			elif command -v wget >/dev/null 2>&1; then \
-				if wget -q --spider http://localhost:$(PORT) 2>/dev/null; then \
-					echo "✅ HTTP OK - Dashboard risponde"; \
-				else \
-					echo "⚠️  HTTP KO - Porta aperta ma dashboard non risponde"; \
-				fi; \
-			else \
-				echo "ℹ️  HTTP check non disponibile (curl/wget mancanti)"; \
-			fi; \
-		else \
-			echo "⚠️  Dashboard NON in esecuzione sulla porta $(PORT)"; \
-		fi; \
-	else \
-		echo "ℹ️ 'lsof' non disponibile. Provo fallback ps/grep..."; \
-		ps aux | grep -E 'streamlit|dash/app\.py' | grep -v grep || echo '   (nessun processo streamlit trovato)'; \
-	fi
-
-.PHONY: dev-open
-dev-open: ## Apre la dashboard su http://localhost:$(PORT) (macOS/Linux/WSL)
-	@echo "== 🌐 Apri dashboard: http://localhost:$(PORT) =="
-	@if command -v open >/dev/null 2>&1; then \
-		open "http://localhost:$(PORT)"; \
-	elif command -v xdg-open >/dev/null 2>&1; then \
-		xdg-open "http://localhost:$(PORT)" >/dev/null 2>&1 || true; \
-	elif command -v cmd.exe >/dev/null 2>&1; then \
-		cmd.exe /c start http://localhost:$(PORT) || true; \
-	else \
-		echo "ℹ️ Apri manualmente: http://localhost:$(PORT)"; \
-	fi
-
-.PHONY: watch-install
-watch-install: ## Installa watcher consigliati (best-effort)
-	@command -v watchexec >/dev/null || (command -v brew >/dev/null && brew install watchexec) || true
-	@command -v entr >/dev/null || (command -v brew >/dev/null && brew install entr) || true
-	@command -v fswatch >/dev/null || (command -v brew >/dev/null && brew install fswatch) || true
-	@python3 -c "import watchdog" >/dev/null 2>&1 || pip install watchdog || true
-
-# --- TOKINTEL::DEV_OPEN START
-.PHONY: dev-open
-dev-open: ## Apre la dashboard su http://localhost:$(PORT)
-	@echo "== 🌐 http://localhost:$(PORT) =="
-	@if command -v open >/dev/null 2>&1; then 		open "http://localhost:$(PORT)"; 	elif command -v xdg-open >/dev/null 2>&1; then 		xdg-open "http://localhost:$(PORT)" >/dev/null 2>&1 || true; 	elif command -v cmd.exe >/dev/null 2>&1; then 		cmd.exe /c start http://localhost:$(PORT) || true; 	else 		echo "ℹ️ Apri manualmente: http://localhost:$(PORT)"; 	fi
-# --- TOKINTEL::DEV_OPEN END
-
-# --- TOKINTEL::DEV_STATUS START
-.PHONY: dev-status
-dev-status: ## Mostra stato dashboard (porta + health HTTP) e variabili env
-	@$(MAKE) env-show || true
-	@if command -v lsof >/dev/null 2>&1; then 		if lsof -i :$(PORT) -sTCP:LISTEN >/dev/null 2>&1; then 			echo "✅ Dashboard attiva su http://localhost:$(PORT)"; 		else 			echo "⚠️ Dashboard NON attiva sulla porta $(PORT)"; 		fi; 	else 		echo "ℹ️ lsof non disponibile: controllo base con ps/grep"; 		ps aux | grep -E 'streamlit|dash/app\.py' | grep -v grep || true; 	fi
-	@if command -v curl >/dev/null 2>&1; then 		if curl -s --max-time 2 "http://localhost:$(PORT)" | grep -qi "streamlit"; then 			echo "🩺 Health check: OK (contenuto atteso)"; 		else 			echo "⚠️ Health check: porta ok ma contenuto inatteso o app non pronta"; 		fi; 	elif command -v wget >/dev/null 2>&1; then 		if wget -qO- --timeout=2 "http://localhost:$(PORT)" | grep -qi "streamlit"; then 			echo "🩺 Health check: OK (contenuto atteso)"; 		else 			echo "⚠️ Health check: porta ok ma contenuto inatteso o app non pronta"; 		fi; 	else 		echo "ℹ️ curl/wget assenti: salto health check HTTP"; 	fi
-# --- TOKINTEL::DEV_STATUS END
-
-# --- TOKINTEL::DEV START
-.PHONY: dev
-dev: ## Status; se non attiva, lancia dev-ready (autostart)
-	@echo "== 🛠️ TokIntel Dev =="
-	@$(MAKE) dev-status || true
-	@echo "== 🔁 Autostart check =="
-	@if command -v lsof >/dev/null 2>&1; then 		if lsof -i :$(PORT) -sTCP:LISTEN >/dev/null 2>&1; then 			echo "✅ Dashboard già attiva su http://localhost:$(PORT)"; 		else 			echo "🚀 Dashboard non attiva: lancio dev-ready..."; 			$(MAKE) dev-ready; 		fi; 	else 		if ps aux | grep -E 'streamlit|dash/app\.py' | grep -v grep >/dev/null; then 			echo "✅ Dashboard appare attiva (ps/grep)"; 		else 			echo "🚀 Dashboard non attiva: lancio dev-ready..."; 			$(MAKE) dev-ready; 		fi; 	fi
 # --- TOKINTEL::DEV END
 
 # --- TOKINTEL::DEV_READY START
