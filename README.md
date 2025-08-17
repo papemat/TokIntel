@@ -5,7 +5,7 @@
   <a href="https://github.com/papemat/TokIntel/actions">
     <img src="https://img.shields.io/badge/CI-passing-brightgreen" alt="CI Status" />
   </a>
-  <img src="https://img.shields.io/badge/DX-Ready-🚀-brightgreen" alt="DX Ready" />
+  <img src="https://img.shields.io/badge/DX-Ready-brightgreen?logo=github" alt="DX Ready" />
 </p>
 
 [![CI](https://github.com/papemat/TokIntel/actions/workflows/ci.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/ci.yml)
@@ -102,6 +102,8 @@ make dev-reset      # Reset per nuovo ciclo
 - ✅ **CI/CD integrato** (fast-tests, post-merge hooks)
 - ✅ **Test veloci** (4 test critici)
 - ✅ **Documentazione completa** (DX_QUICKSTART.md, CHECKLIST.md)
+- ✅ **Protezione push** (hook `.git/hooks/pre-push` blocca se i test falliscono)
+- ✅ **Handoff ZIP** (`tokintel_dx_setup_final.zip`)
 
 📖 **Guida completa**: [DX_QUICKSTART.md](DX_QUICKSTART.md) | [CHECKLIST.md](CHECKLIST.md)
 

@@ -878,9 +878,15 @@ logs-clear: ## Svuota i rotating logs di ingest
 	@echo "✅ ingest.log pulito"
 # --- TOKINTEL::LOGS_CLEAR END
 
+# --- TOKINTEL::MAKEFILE_LINT_DUPES START
+.PHONY: makefile-lint-dupes
+makefile-lint-dupes: ## Verifica duplicati target Makefile
+	@awk -F':' '/^[a-zA-Z0-9_.-]+:/ {print $$1}' Makefile | grep -v '^\.PHONY$$' | sort | uniq -d | sed 's/^/DUPLICATE TARGET: /' | tee /dev/stderr | (! grep -q .) || (echo "❌ Duplicate targets found." && exit 1)
+# --- TOKINTEL::MAKEFILE_LINT_DUPES END
+
 # --- TOKINTEL::TEST_FAST START
 .PHONY: test-fast
-test-fast: ## Pytest veloce (timing & CSV)
+test-fast: makefile-lint-dupes ## Pytest veloce (timing & CSV)
 	@python -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py || python3 -m pytest -q tests/unit/test_timing_config.py tests/unit/test_stats_csv_export.py
 # --- TOKINTEL::TEST_FAST END
 

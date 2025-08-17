@@ -1,24 +1,19 @@
-## Sprint 3 — Hardening & E2E
+## 🔍 Summary
+<!-- Cosa cambia e perché -->
 
-### Checklist
-- [ ] Orchestrator CLI funzionante
-- [ ] E2E headless green su 3.10/3.11
-- [ ] Auto-export CSV/JSON verificato
-- [ ] Badge workflow verde
+## ✅ Checklist
+- [ ] Code compila e i test locali passano (`make test-fast`)
+- [ ] Documentazione aggiornata (se serve)
+- [ ] Nessun target duplicato nel Makefile (`awk … uniq -d`)
 
-### Note
-- Comandi di verifica:
-  ```bash
-  make kill-port TI_PORT=8510
-  TI_AUTO_EXPORT=1 TI_PORT=8510 make run-ui
-  make test-e2e-only && make coverage-sprint3
-  ```
+## 🧪 Test Evidence
+- Output `make test-fast`:
+```
 
-### Changes
-<!-- Descrivi le modifiche principali -->
+(paste)
 
-### Testing
-<!-- Come hai testato le modifiche -->
+```
 
-### Screenshots
-<!-- Se applicabile -->
+## 📦 DX Touchpoints
+- [ ] `./scripts/dx_super_setup.sh` idempotente
+- [ ] Badge "DX Ready" visibile in README

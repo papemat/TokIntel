@@ -1,17 +1,15 @@
 ---
-name: Feature request
-about: Proponi una feature
+name: ✨ Feature request
+about: Richiedi una funzionalità
 labels: enhancement
 ---
 
-**Motivazione**
-Perché serve?
+**Problema/Esigenza**
+…
 
-**Descrizione Feature**
-Cosa dovrebbe fare? API/UI?
+**Soluzione proposta**
+…
 
-**Impatto**
-- Dev effort stimato:
-- Benefici:
-
-**Note**
+**Impatto DX**
+- [ ] Nuovi target Make?
+- [ ] Aggiornare doc (DX_QUICKSTART.md)?
