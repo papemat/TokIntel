@@ -108,7 +108,7 @@ make dev-reset      # Reset per nuovo ciclo
 - ✅ **Protezione push** (hook `.git/hooks/pre-push` blocca se i test falliscono)
 - ✅ **Handoff ZIP** (`tokintel_dx_setup_final.zip`)
 
-📖 **Guida completa**: [DX_QUICKSTART.md](DX_QUICKSTART.md) | [CHECKLIST.md](CHECKLIST.md)
+📖 **Guida completa**: [DX_QUICKSTART.md](DX_QUICKSTART.md) | [CHECKLIST.md](CHECKLIST.md) | [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md)
 
 ### Supporto ambienti
 | OS        | Python | Stato |
@@ -116,6 +116,21 @@ make dev-reset      # Reset per nuovo ciclo
 | macOS     | 3.10–3.11 | ✅ |
 | Ubuntu    | 3.10–3.11 | ✅ |
 | Windows (WSL) | 3.10–3.11 | ✅ |
+
+### 🚀 **Operatività Pro-Level**
+
+```bash
+# Production smoke test (60s)
+./scripts/prod_smoke_test.sh
+
+# Hotfix express con release
+./scripts/hotfix_express.sh "fix: description"
+
+# Routine settimanale (2 min)
+./scripts/weekly_routine.sh
+```
+
+📋 **Runbook**: [INCIDENT_RUNBOOK.md](INCIDENT_RUNBOOK.md) | **PR Gate**: [GITHUB_BRANCH_PROTECTION.md](GITHUB_BRANCH_PROTECTION.md)
 
 ## 🐳 Run with Docker
 
