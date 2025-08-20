@@ -898,3 +898,20 @@ watch-install: ## Installa watcher consigliati (best-effort)
 	@command -v fswatch >/dev/null || (command -v brew >/dev/null && brew install fswatch) || true
 	@python3 -c "import watchdog" >/dev/null 2>&1 || pip install watchdog || true
 # --- TOKINTEL::WATCH_INSTALL END
+
+# --- TOKINTEL::DX_RELEASE START
+.PHONY: dx-release
+dx-release: ## Tagga e pubblica release DX (VER=1.0.0)
+	@[ -n "$$VER" ] || (echo "Usage: make dx-release VER=1.0.0" && exit 1)
+	@echo "🔖 Tagging release v$$VER"
+	@echo "## TokIntel v$$VER – DX Bundle\n\n- DX setup idempotente\n- CI fast-tests\n- Hooks pre-push/post-merge\n- Doctor script\n- Templates PR/Issue\n- Dependabot\n\n### Quick start\n\`\`\`bash\n./scripts/dx_super_setup.sh\nmake dev-status && make test-fast\n\`\`\`\n" > RELEASE_NOTES.md
+	@git add RELEASE_NOTES.md && git commit -m "chore(release): v$$VER notes"
+	@git tag -a "v$$VER" -m "TokIntel v$$VER (DX bundle)"
+	@git push origin main --tags
+# --- TOKINTEL::DX_RELEASE END
+
+# --- TOKINTEL::CHANGELOG START
+.PHONY: changelog
+changelog: ## Genera CHANGELOG.md automatico
+	@./scripts/gen_changelog.sh
+# --- TOKINTEL::CHANGELOG END

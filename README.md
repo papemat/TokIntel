@@ -6,6 +6,9 @@
     <img src="https://img.shields.io/badge/CI-passing-brightgreen" alt="CI Status" />
   </a>
   <img src="https://img.shields.io/badge/DX-Ready-brightgreen?logo=github" alt="DX Ready" />
+  <a href="https://github.com/papemat/TokIntel/actions/workflows/fast-tests.yml">
+    <img src="https://github.com/papemat/TokIntel/actions/workflows/fast-tests.yml/badge.svg" alt="Fast Tests" />
+  </a>
 </p>
 
 [![CI](https://github.com/papemat/TokIntel/actions/workflows/ci.yml/badge.svg)](https://github.com/papemat/TokIntel/actions/workflows/ci.yml)
@@ -106,6 +109,13 @@ make dev-reset      # Reset per nuovo ciclo
 - ✅ **Handoff ZIP** (`tokintel_dx_setup_final.zip`)
 
 📖 **Guida completa**: [DX_QUICKSTART.md](DX_QUICKSTART.md) | [CHECKLIST.md](CHECKLIST.md)
+
+### Supporto ambienti
+| OS        | Python | Stato |
+|-----------|--------|-------|
+| macOS     | 3.10–3.11 | ✅ |
+| Ubuntu    | 3.10–3.11 | ✅ |
+| Windows (WSL) | 3.10–3.11 | ✅ |
 
 ## 🐳 Run with Docker
 
