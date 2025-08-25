@@ -183,7 +183,7 @@ jobs:
           cp -r htmlcov/* "out/${PR_DIR}/"
           echo "prdir=${PR_DIR}" >> $GITHUB_OUTPUT
       - name: Publish to gh-pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./out
