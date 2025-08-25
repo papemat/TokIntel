@@ -3,7 +3,7 @@ fastapi
 uvicorn
 pyyaml
 numpy
-pandas==2.2.*
+pandas==2.3.*
 
 # Audio processing
 openai-whisper
